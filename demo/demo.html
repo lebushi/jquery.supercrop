@@ -1,0 +1,59 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+	<title>jquery zoom demo</title>
+	<link rel="stylesheet" type="text/css" href="styles.css"/>
+	<script language="JAVASCRIPT" src="jquery/jquery-1.5.min.js" type="TEXT/JAVASCRIPT"></script>
+		<script language="JAVASCRIPT" src="jquery.zhoom.js" type="TEXT/JAVASCRIPT"></script>
+		
+	
+</head>
+
+<body>
+	<div style="width:800px; margin-left:30px;">
+	<br>
+	
+<b>jquery superCrop - demo</b><br>
+ v.01
+<div  style=" margin-top:50px;">
+<div id="test" style="width:400px; height:300px; float:left;"></div>
+<div id="test2" style="width:400px; height:300px; float:left;"></div>
+
+</div>
+<div  style="clear:left;">
+<div id="test4" style="width:600px; height:300px; float:left;"></div>
+<div id="test3" style="width:200px; height:300px; float:left;"></div>
+
+</div>
+
+</div>
+
+<a href="#" id="getData">get Data</a>
+<script type="text/javascript">
+$(document).ready(function() {
+
+$("#test").superCrop({imageUrl:"http://www.taramtamtam.com/wallpapers/Nature/F/Flower/images/Flower_2.jpg"});
+$("#test2").superCrop({imageUrl:"http://puzzles-gallery.com/data/media/18/two_flowers.preview.jpg"});
+$("#test3").superCrop({imageUrl:"http://wallpapers-diq.org/wallpapers/42/Yellow_Garden_Flowers.jpg"});
+$("#test4").superCrop({imageUrl:"http://crazy-frankenstein.com/free-wallpapers-files/flowers-wallpapers/orchid-wallpapers/pink-orchids-wallpaper.jpg"});
+
+var test4 = $("#test4").data("SuperCrop");
+$("#getData").click(function(){
+	console.log(JSON.stringify(test4.getData()));
+	appendPreview(test4.getData());
+});
+
+function appendPreview(data){
+	$("body").append("<div  style='width:"+data.cropWidth+ "px; height:" + data.cropHeight  +"px; overflow:hidden; position:relative; float:left;'><img src='"+ data.imageUrl+"' style='width:"+data.imageWidth+ "px; height:" + data.imageHeight  +"px; position:absolute; top:"+data.offsetTop+"px; left:"+ data.offsetLeft+"px'/></div>")
+	
+};
+
+});
+</script>
+
+</body>
+</html>

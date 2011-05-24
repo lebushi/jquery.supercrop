@@ -1,0 +1,11 @@
+body{padding:0px; margin:0; font-family:Arial}
+.container { margin:0px; overflow:hidden; position:relative; background:url(http://www.abgoodwin.com/mm2/MandalaMaker-Manual/images/checkerboard.png)}
+
+.image { position:absolute; left:0; top:0; cursor:move}
+
+.button_pane {position:absolute; right:5px; bottom:5px}
+.button {  margin:1px; background:black; opacity:0.7; font-weight:bold; color:#fff; padding:5px 0px; font-size:18px; height:20px; width:30px; cursor:pointer;  text-align:center}
+.info {position:absolute; top:5px; right:5px; ; background:black; opacity:0.5; padding:5px; color:#fff; font-size:9px;}
+
+
+.button, .info {-webkit-border-radius: 6px; -moz-border-radius: 6px; border-radius: 6px;}
