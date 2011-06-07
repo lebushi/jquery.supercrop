@@ -23,11 +23,13 @@ more ideas:
 		var     $el         	= $(el),
                 that         	= this,
                 opts    		= $.extend({}, $.fn.superCrop.defaults, options),
-				html 			= $('<div class="supercrop_container"><div class="supercrop_inner"><div class="supercrop_resize_height"></div><div class="supercrop_resize_width"></div><img class="supercrop_image"/><div class="supercrop_buttonpane"><button class="supercrop_button supercrop_zoom_in">+</button><button class="supercrop_button supercrop_zoom_out">-</button></div><div class="supercrop_info">100%</div></div></div>'),
+				html 			= $('<div class="supercrop_container"><div class="supercrop_resize"></div><div class="supercrop_resize_height"></div><div class="supercrop_resize_width"></div><div class="supercrop_inner"><img class="supercrop_image"/><div class="supercrop_buttonpane"><button class="supercrop_button supercrop_zoom_in">+</button><button class="supercrop_button supercrop_zoom_out">-</button></div><div class="supercrop_info">100%</div></div></div>'),
 				buttonZoomIn	= $(".supercrop_zoom_in",html),
 				buttonZoomOut	= $(".supercrop_zoom_out",html),
 				buttonResizeWidth	= $(".supercrop_resize_width",html),
 				buttonResizeHeight	= $(".supercrop_resize_height",html),
+				buttonResize	= $(".supercrop_resize",html),
+
 				image			= $(".supercrop_image",html),
 				info			= $(".supercrop_info",html),
 				
@@ -35,7 +37,8 @@ more ideas:
 				zoom			= 0,
 				zooming			= false,
 				xOff			= 0,
-				yOff			= 0;
+				yOff			= 0,
+				resizing		= false;
 				
 				
 				if(opts.imageUrl) image.attr("src",opts.imageUrl);
@@ -113,29 +116,44 @@ more ideas:
 		buttonZoomIn.mousedown(function(e){ zoomIn();});
 		   
 		
-		
-		buttonResizeWidth.hover(
-		    function() { $(this).stop(true,true).fadeTo(200,0.9); console.log("hover in"); },
-		    function() { $(this).stop(true,true).fadeTo(200,0); console.log("hover out"); }
+		//addingd fading animation to resizebars
+		$.each([buttonResizeHeight,buttonResizeWidth],function(){ this.hover(
+		    function() {if(!resizing)  $(this).stop(true,true).fadeTo(100,0.9);  },
+		    function() { if(!resizing) $(this).stop(true,true).fadeTo(100,0);}
 			);
-		buttonResizeHeight.hover(
-		    function() { $(this).stop(true,true).fadeTo(200,0.9); console.log("hover in"); },
-		    function() { $(this).stop(true,true).fadeTo(200,0); console.log("hover out"); }
-			);
+		});
+			
+			
+			
+		//resize buttons	
 	    buttonResizeWidth.mousedown(function(e){
 		   e.preventDefault ? e.preventDefault() : e.returnValue = false;
 
-	    	startResizeWidth($(this).offset().left);
+	    	startResize($(this).offset().left,false);
+	    	
 		}).mouseup(function(e){
-			stopResizeWidth();
+			stopResize();
 		});
+		
+		
+		
+	    buttonResize.mousedown(function(e){
+		   e.preventDefault ? e.preventDefault() : e.returnValue = false;
+
+	    	startResize($(this).offset().left,$(this).offset().top);
+	    	
+		}).mouseup(function(e){
+			stopResize();
+		});
+		
+		
 		
 	   buttonResizeHeight.mousedown(function(e){
 		   e.preventDefault ? e.preventDefault() : e.returnValue = false;
 
-	    	startResizeHeight($(this).offset().top);
+	    	startResize(false,$(this).offset().top);
 		}).mouseup(function(e){
-			stopResizeHeight();
+			stopResize();
 		});
 		
 
@@ -410,54 +428,37 @@ more ideas:
 	};
 
 
+
 ////////////////////////////////////////////////////////////////////////////////////
 
 
-    function startResizeWidth(xOffMouse){
-      	//var rootPosition = position;
-      			
-    	$(document).unbind("mousemove",mouseMoveResizeWidth).bind("mousemove",{xOffMouse:xOffMouse},mouseMoveResizeWidth);
-		$(document).unbind("mouseup",stopResizeWidth).mouseup(stopResizeWidth);
+    function startResize(xOffMouse,yOffMouse){      	
+    	resizing = true;		
+    	$(document).unbind("mousemove",mouseMoveResize).bind("mousemove",{xOffMouse:xOffMouse,yOffMouse:yOffMouse},mouseMoveResize);
+		$(document).unbind("mouseup",stopResize).mouseup(stopResize);
       	
-      };
-    function stopResizeWidth(){
-		$(document).unbind("mouseup",stopResizeWidth);
-    	$(document).unbind("mousemove",mouseMoveResizeWidth);
+    };
+    function stopResize(){
+    	resizing = false;		
+
+		$(document).unbind("mouseup",stopResize);
+    	$(document).unbind("mousemove",mouseMoveResize);
       	containerWidth = html.width();
-      };
-      
-	function mouseMoveResizeWidth(e){
-		var value=e.pageX-e.data.xOffMouse;
-		console.log(value);
-		
-		html.width(containerWidth+value);
-		
-		
-	};
-////////////////////////////////////////////////////////////////////////////////////
-
-
-    function startResizeHeight(yOffMouse){
-      	//var rootPosition = position;
-      			
-    	$(document).unbind("mousemove",mouseMoveResizeHeight).bind("mousemove",{yOffMouse:yOffMouse},mouseMoveResizeHeight);
-		$(document).unbind("mouseup",stopResizeHeight).mouseup(stopResizeHeight);
-      	
-      };
-    function stopResizeHeight(){
-		$(document).unbind("mouseup",stopResizeHeight);
-    	$(document).unbind("mousemove",mouseMoveResizeHeight);
       	containerHeight = html.height();
-      };
+		
+    	if(!imageInBounds()) 
+		refreshOffset();
+     };
       
-	function mouseMoveResizeHeight(e){
-		var value=e.pageY-e.data.yOffMouse;
-		console.log(value);
-		
-		html.height(containerHeight+value);
-		
-		
+	function mouseMoveResize(e){
+		if(e.data.xOffMouse)
+			html.width(containerWidth+e.pageX-e.data.xOffMouse);
+		if(e.data.yOffMouse)
+			html.height(containerHeight+e.pageY-e.data.yOffMouse);
+
 	};
+
+
 
 
 
