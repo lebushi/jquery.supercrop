@@ -23,9 +23,11 @@ more ideas:
 		var     $el         	= $(el),
                 that         	= this,
                 opts    		= $.extend({}, $.fn.superCrop.defaults, options),
-				html 			= $('<div class="supercrop_container"><img class="supercrop_image"/><div class="supercrop_buttonpane"><button class="supercrop_button supercrop_zoom_in">+</button><button class="supercrop_button supercrop_zoom_out">-</button></div><div class="supercrop_info">100%</div></div>'),
+				html 			= $('<div class="supercrop_container"><div class="supercrop_inner"><div class="supercrop_resize_height"></div><div class="supercrop_resize_width"></div><img class="supercrop_image"/><div class="supercrop_buttonpane"><button class="supercrop_button supercrop_zoom_in">+</button><button class="supercrop_button supercrop_zoom_out">-</button></div><div class="supercrop_info">100%</div></div></div>'),
 				buttonZoomIn	= $(".supercrop_zoom_in",html),
 				buttonZoomOut	= $(".supercrop_zoom_out",html),
+				buttonResizeWidth	= $(".supercrop_resize_width",html),
+				buttonResizeHeight	= $(".supercrop_resize_height",html),
 				image			= $(".supercrop_image",html),
 				info			= $(".supercrop_info",html),
 				
@@ -60,8 +62,11 @@ more ideas:
 			
 	  			$el.data('SuperCrop', this);			        
 				        
-				
-			
+		
+	//check	if any dependencies are violated in the default parameters
+	function checkParameterDependencies(){
+		
+	};		
 			
 	function calculateDimensions(){
 		
@@ -97,6 +102,8 @@ more ideas:
  		image.mousedown(function(e){
 		   //preventing default event from happening
 		   e.preventDefault ? e.preventDefault() : e.returnValue = false;
+		   
+		   //calculate 
 		   var imageOffset = $(this).offset();
 		   startDrag(e.pageX-imageOffset.left,e.pageY-imageOffset.top);
 		});
@@ -105,6 +112,31 @@ more ideas:
 		buttonZoomOut.mousedown(function(e){zoomOut();});
 		buttonZoomIn.mousedown(function(e){ zoomIn();});
 		   
+		
+		
+		buttonResizeWidth.hover(
+		    function() { $(this).stop(true,true).fadeTo(200,0.9); console.log("hover in"); },
+		    function() { $(this).stop(true,true).fadeTo(200,0); console.log("hover out"); }
+			);
+		buttonResizeHeight.hover(
+		    function() { $(this).stop(true,true).fadeTo(200,0.9); console.log("hover in"); },
+		    function() { $(this).stop(true,true).fadeTo(200,0); console.log("hover out"); }
+			);
+	    buttonResizeWidth.mousedown(function(e){
+		   e.preventDefault ? e.preventDefault() : e.returnValue = false;
+
+	    	startResizeWidth($(this).offset().left);
+		}).mouseup(function(e){
+			stopResizeWidth();
+		});
+		
+	   buttonResizeHeight.mousedown(function(e){
+		   e.preventDefault ? e.preventDefault() : e.returnValue = false;
+
+	    	startResizeHeight($(this).offset().top);
+		}).mouseup(function(e){
+			stopResizeHeight();
+		});
 		
 
 		html.bind('mousewheel', function(event, delta) {
@@ -121,6 +153,11 @@ more ideas:
 		});
 		
       };
+      
+      
+  
+
+
        
 ///////////////////////////////////////////////////////
 
@@ -163,6 +200,8 @@ more ideas:
  		
 			//if image is smaller then the container
 
+    	}else{ 
+    		tempYOff = 0;
     	}
 		
 		
@@ -178,9 +217,11 @@ more ideas:
                                                                                                                  
            
                                                                                                          
+	   	 }else{
+	   	 	tempXOff = 0;
 	   	 }              
-           	console.log("xOff: " + xOff + " tempXOff: " + tempXOff  + " html.offset.left- " +  html.offset().left + "  ciw - cw" + (currentImageWidth-containerWidth)  + "  " +   ( tempXOff - html.offset().left )   + "  " + ((currentImageWidth-containerWidth) + (xOff ) < 0 ) );
-		    console.log("yOff: " + yOff + " tempXOff: " + tempYOff  + " html.offset.top- " +  html.offset().top + "  ciw - cw" + (currentImageWidth-containerWidth)  + "  " +   ( tempXOff - html.offset().left )   + "  " + ((currentImageWidth-containerWidth) + (yOff) < 0 ) );
+       	console.log("xOff: " + xOff + " tempXOff: " + tempXOff  + " html.offset.left- " +  html.offset().left + "  ciw - cw" + (currentImageWidth-containerWidth)  + "  " +   ( tempXOff - html.offset().left )   + "  " + ((currentImageWidth-containerWidth) + (xOff ) < 0 ) );
+	    console.log("yOff: " + yOff + " tempXOff: " + tempYOff  + " html.offset.top- " +  html.offset().top + "  ciw - cw" + (currentImageWidth-containerWidth)  + "  " +   ( tempXOff - html.offset().left )   + "  " + ((currentImageWidth-containerWidth) + (yOff) < 0 ) );
 									           	                                            
                                                                                                                  
 	   //if(tempXOff != xOff|| tempYOff != yOff) 
@@ -249,10 +290,13 @@ more ideas:
 	function calculateCenteredOffset(newWidth,newHeight){
 		var returnOffset = {x:0,y:0};
 		
-		returnOffset.x = -(newWidth/2 - containerWidth/2);
-		returnOffset.y = -(newHeight/2 - containerHeight/2);
+		//returnOffset.x = -(newWidth/2 - containerWidth/2);
+		//returnOffset.y = -(newHeight/2 - containerHeight/2);
+		returnOffset.x = -(((Math.abs(xOff)*2 + containerWidth)/2)-containerWidth/2);
+		returnOffset.y = -(((Math.abs(yOff)*2 + containerHeight)/2)-containerHeight/2);
 		
-		
+		if(newWidth < containerWidth)  returnOffset.x  = 0;
+		if(newHeight < containerHeight)  returnOffset.y  = 0;
 		return returnOffset;
 	};
 
@@ -332,17 +376,16 @@ more ideas:
 };
 
 
-
-function mouseMove(e){
-	xOff=e.pageX-e.data.xOffMouse;
-	yOff=e.pageY-e.data.yOffMouse;
-
-	_update(true);
-  
-	
-	console.log("mouseMove  xOff: " + xOff + "  yOff: " + yOff + "  xOffMouse: " + e.data.xOffMouse + "  yOffMouse: " + e.data.yOffMouse  + " e.pageX: " + e.pageX + " e.pageY " + e.pageY  + " container.offset(): " + html.offset().left);
-	
-};
+	//called on mousemove-event while dragging
+	function mouseMove(e){
+		xOff=e.pageX-e.data.xOffMouse;
+		yOff=e.pageY-e.data.yOffMouse;
+		
+		_update(true);	  
+		
+		console.log("mouseMove  xOff: " + xOff + "  yOff: " + yOff + "  xOffMouse: " + e.data.xOffMouse + "  yOffMouse: " + e.data.yOffMouse  + " e.pageX: " + e.pageX + " e.pageY " + e.pageY  + " container.offset(): " + html.offset().left);
+		
+	};
 
 	function startDrag(xOffMouse,yOffMouse){
 		image.stop(true,false); // stopping all image animaations
@@ -366,6 +409,59 @@ function mouseMove(e){
  		
 	};
 
+
+////////////////////////////////////////////////////////////////////////////////////
+
+
+    function startResizeWidth(xOffMouse){
+      	//var rootPosition = position;
+      			
+    	$(document).unbind("mousemove",mouseMoveResizeWidth).bind("mousemove",{xOffMouse:xOffMouse},mouseMoveResizeWidth);
+		$(document).unbind("mouseup",stopResizeWidth).mouseup(stopResizeWidth);
+      	
+      };
+    function stopResizeWidth(){
+		$(document).unbind("mouseup",stopResizeWidth);
+    	$(document).unbind("mousemove",mouseMoveResizeWidth);
+      	containerWidth = html.width();
+      };
+      
+	function mouseMoveResizeWidth(e){
+		var value=e.pageX-e.data.xOffMouse;
+		console.log(value);
+		
+		html.width(containerWidth+value);
+		
+		
+	};
+////////////////////////////////////////////////////////////////////////////////////
+
+
+    function startResizeHeight(yOffMouse){
+      	//var rootPosition = position;
+      			
+    	$(document).unbind("mousemove",mouseMoveResizeHeight).bind("mousemove",{yOffMouse:yOffMouse},mouseMoveResizeHeight);
+		$(document).unbind("mouseup",stopResizeHeight).mouseup(stopResizeHeight);
+      	
+      };
+    function stopResizeHeight(){
+		$(document).unbind("mouseup",stopResizeHeight);
+    	$(document).unbind("mousemove",mouseMoveResizeHeight);
+      	containerHeight = html.height();
+      };
+      
+	function mouseMoveResizeHeight(e){
+		var value=e.pageY-e.data.yOffMouse;
+		console.log(value);
+		
+		html.height(containerHeight+value);
+		
+		
+	};
+
+
+
+////////////////////////////////////////////////////////////////////////////////////
 
 function _update(notAnimated,onFinishAnimation){
 		image.stop(true,false); // stopping all image animaations
@@ -433,13 +529,19 @@ function _update(notAnimated,onFinishAnimation){
     
 
   $.fn.superCrop.defaults = {
-    limitToContainerFormat: false,
+    limitToContainerFormat: true,
 	maxZoom: 200,
 	minZoom: 10,
 	stepSize: 10,
 	mouseWheel: true
+//  allowZoom:true
+//  incrementalZoom:false
 //	allowResizeWidth:true
-///	allowResizeHeight:true
+//	allowResizeHeight:true
+//	maxWidth
+// 	minWidth
+//	maxHeight
+//	minHeight
 //	autoWidth
 //	autoHeight
   };    

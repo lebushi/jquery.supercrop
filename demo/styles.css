@@ -1,29 +1,20 @@
-body{padding:0px; margin:0; font-family:Arial}
-.supercrop_container { margin:0px; overflow:hidden; position:relative; background:url(http://www.abgoodwin.com/mm2/MandalaMaker-Manual/images/checkerboard.png)}
+body                    { padding: 0px; margin: 0; font-family: Arial; }
+.supercrop_container    { margin: 0px position: relative;  background: url(img/checkerboard.png);}
+.supercrop_inner	    { width:100%; height:100%; overflow: hidden; position: relative; }
 
-.supercrop_image { position:absolute; left:0; top:0; cursor:move}
+.supercrop_image        { position: absolute; left: 0; top: 0; cursor: move; }
+.supercrop_buttonpane   { position: absolute; right: 5px; bottom: 5px; }
+.supercrop_button       { margin: 0px; background: black; border: none; font-family: Arial; display: block; opacity: 0.7; font-weight: bold; color: #fff; padding: 0px 0px; font-size: 18px; height: 25px; width: 30px; cursor: pointer; text-align: center; }
+.supercrop_button:hover { opacity: 1 }
+.supercrop_button:active
+                        { opacity: 0.8 }
 
-.supercrop_buttonpane {position:absolute; right:5px; bottom:5px}
-.supercrop_button {  margin:0px; background:black; border:none;  font-family:Arial; display:block; opacity:0.7; font-weight:bold; color:#fff; padding:0px 0px; font-size:18px; height:25px; width:30px; cursor:pointer;  text-align:center}
-.supercrop_button:hover{opacity:1}
-.supercrop_button:active{opacity:0.8}
-
-.supercrop_info {position:absolute; top:5px; right:5px; ; background:black; opacity:0.5; padding:5px; color:#fff; font-size:9px;}
-
-
-
- .supercrop_info {-webkit-border-radius: 6px; -moz-border-radius: 6px; border-radius: 6px;}
- .supercrop_zoom_in { border-bottom:1px solid #444;
- 	-webkit-border-top-left-radius: 8px; -webkit-border-top-right-radius: 8px;
--moz-border-radius-topleft: 8px;
--moz-border-radius-topright: 8px;
-border-top-left-radius: 8px;
-border-top-right-radius: 8px;}
- .supercrop_zoom_out { 
- 	-webkit-border-bottom-right-radius: 8px;
--webkit-border-bottom-left-radius: 8px;
--moz-border-radius-bottomright: 8px;
--moz-border-radius-bottomleft: 8px;
-border-bottom-right-radius: 8px;
-border-bottom-left-radius: 8px;
- }
+.supercrop_resize_width,
+.supercrop_resize_height{ position:absolute; background:#000; opacity:0; z-index: 2;}   
+.supercrop_hover        { opacity:0.8}             
+.supercrop_resize_width {  right:0px; top:0px; height:100%; width:8px; cursor:col-resize}
+.supercrop_resize_height{  left:0px; bottom:0px; width:100%; height:8px; cursor:row-resize}                           
+.supercrop_info         { position: absolute; top: 5px; right: 5px; : ; background: black; opacity: 0.5; padding: 5px; color: #fff; font-size: 9px; }
+.supercrop_info         { -webkit-border-radius: 6px; -moz-border-radius: 6px; border-radius: 6px; }
+.supercrop_zoom_in      { border-bottom: 1px solid #444; -webkit-border-top-left-radius: 8px; -webkit-border-top-right-radius: 8px; -moz-border-radius-topleft: 8px; -moz-border-radius-topright: 8px; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+.supercrop_zoom_out     { -webkit-border-bottom-right-radius: 8px; -webkit-border-bottom-left-radius: 8px; -moz-border-radius-bottomright: 8px; -moz-border-radius-bottomleft: 8px; border-bottom-right-radius: 8px; border-bottom-left-radius: 8px; }
