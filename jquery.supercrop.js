@@ -1,4 +1,7 @@
 (function($){var types=['DOMMouseScroll','mousewheel'];$.event.special.mousewheel={setup:function(){if(this.addEventListener){for(var i=types.length;i;){this.addEventListener(types[--i],handler,false)}}else{this.onmousewheel=handler}},teardown:function(){if(this.removeEventListener){for(var i=types.length;i;){this.removeEventListener(types[--i],handler,false)}}else{this.onmousewheel=null}}};$.fn.extend({mousewheel:function(fn){return fn?this.bind("mousewheel",fn):this.trigger("mousewheel")},unmousewheel:function(fn){return this.unbind("mousewheel",fn)}});function handler(event){var orgEvent=event||window.event,args=[].slice.call(arguments,1),delta=0,returnValue=true,deltaX=0,deltaY=0;event=$.event.fix(orgEvent);event.type="mousewheel";if(event.wheelDelta){delta=event.wheelDelta/120}if(event.detail){delta=-event.detail/3}deltaY=delta;if(orgEvent.axis!==undefined&&orgEvent.axis===orgEvent.HORIZONTAL_AXIS){deltaY=0;deltaX=-1*delta}if(orgEvent.wheelDeltaY!==undefined){deltaY=orgEvent.wheelDeltaY/120}if(orgEvent.wheelDeltaX!==undefined){deltaX=-1*orgEvent.wheelDeltaX/120}args.unshift(event,delta,deltaX,deltaY);return $.event.handle.apply(this,args)}})(jQuery);
+
+
+
 /*TODO -
 BASICS
 
@@ -34,47 +37,50 @@ more ideas:
 				info			= $(".supercrop_info",html),
 				
 				zoomFactorPercentage = opts.stepSize,
-				zoom			= 0,
 				zooming			= false,
-				xOff			= 0,
-				yOff			= 0,
-				resizing		= false;
+				resizing		= false;				
 				
-				
-				if(opts.imageUrl) image.attr("src",opts.imageUrl);
 				$el.append(html);
 			
 				
 				
 				
-		var		containerWidth,
-				containerHeight,
-
- 				imageWidth,
-			 	imageHeight,
-
-				currentImageWidth,
-				currentImageHeight,
-
+		var		zoom,xOff,yOff,containerWidth, containerHeight,				
+ 				imageWidth, imageHeight,
+				currentImageWidth, currentImageHeight,
  				ratio,				
 				//what gets subtracted/added from the width of the picture
-				zoomFactor, 
-				zoomFactorY;
+				zoomFactor,	zoomFactorY;
 			
 			
 			
-	  			$el.data('SuperCrop', this);			        
+		$el.data('SuperCrop', this);			        
 				        
 		
+
 	//check	if any dependencies are violated in the default parameters
-	function checkParameterDependencies(){
+	function reset(){
+		zoom = opts.zoom;
+		xOff = opts.xOffset;
+		yOff = opts.yOffset;
+		image.attr("src",opts.imageUrl);
+		image.css("width","auto").css("height","auto");				
+      					
 		
+	//	refreshOffset();
+		image.load(function(){
+			calculateDimensions();
+		//	alert("meow");
+			zoomTo(opts.zoom);
+			_update();
+		});
+				
 	};		
 			
 	function calculateDimensions(){
 		
-				containerWidth		= html.width();
-				containerHeight		= html.height();
+				containerWidth		= opts.width;
+				containerHeight		= opts.height;
 
 				if(!opts.width) containerWidth = html.parent().width();
 				html.width(containerWidth);
@@ -83,7 +89,8 @@ more ideas:
 
  				imageWidth 			= image.width();
 			 	imageHeight 		= image.height();
-
+	
+	
 				currentImageWidth 	= imageWidth;
 				currentImageHeight 	= imageHeight;
 
@@ -100,9 +107,10 @@ more ideas:
 	};
 				
        /**DELETEME*/          
-      function init(){           
+      function init(){        
 	
- 		image.mousedown(function(e){
+		//init image dragging
+		image.mousedown(function(e){
 		   //preventing default event from happening
 		   e.preventDefault ? e.preventDefault() : e.returnValue = false;
 		   
@@ -112,69 +120,95 @@ more ideas:
 		});
 
 		
-		buttonZoomOut.mousedown(function(e){zoomOut();});
-		buttonZoomIn.mousedown(function(e){ zoomIn();});
-		   
+		//init zoom
+		if(opts.allowZoom){
+			buttonZoomOut.mousedown(function(e){zoomOut();});
+			buttonZoomIn.mousedown(function(e){ zoomIn();});		   
+			
+			html.bind('mousewheel', function(event, delta) {
+			            var dir = delta > 0 ? 'Up' : 'Down',
+			                vel = Math.abs(delta);
+			            if(dir == "Up") zoomIn(true);
+			            else zoomOut(true);
+			            return false;
+			 });		
+		}
+		
+		
+		//init container resizing
+		
 		
 		//addingd fading animation to resizebars
-		$.each([buttonResizeHeight,buttonResizeWidth],function(){ this.hover(
-		    function() {if(!resizing)  $(this).stop(true,true).fadeTo(100,0.9);  },
-		    function() { if(!resizing) $(this).stop(true,true).fadeTo(100,0);}
+	 
+		
+				
+			
+		if(opts.allowResizeWidth){				
+		    buttonResizeWidth.mousedown(function(e){
+			   e.preventDefault ? e.preventDefault() : e.returnValue = false;
+		    	startResize($(this).offset().left,false);	    	
+			}).mouseup(function(e){
+				stopResize();
+			});
+			
+		}else{
+			buttonResizeWidth.hide()
+		}
+		
+		
+		
+		if(opts.allowResizeHeight){		
+		   buttonResizeHeight.mousedown(function(e){
+			   e.preventDefault ? e.preventDefault() : e.returnValue = false;
+		    	startResize(false,$(this).offset().top);
+			}).mouseup(function(e){
+				stopResize();
+			});
+		}else{
+			buttonResizeHeight.hide();
+		}	
+			
+		if(opts.allowResizeHeight && opts.allowResizeWidth){	
+	   		buttonResize.mousedown(function(e){
+			  e.preventDefault ? e.preventDefault() : e.returnValue = false;
+		      startResize($(this).offset().left,$(this).offset().top);	    	
+			}).mouseup(function(e){
+				stopResize();
+			});
+			
+			buttonResize.hover(
+			   function() {if(!resizing){  fadeIn(buttonResizeHeight); fadeIn(buttonResizeWidth); }},
+			   function() { if(!resizing){ fadeOut(buttonResizeHeight); fadeOut(buttonResizeWidth); }}
+			   
+			);
+			
+		}
+
+
+		$.each([buttonResizeHeight,buttonResizeWidth],function(){ 
+			this.hover(
+			   function() {if(!resizing)  fadeIn($(this)); },
+			   function() { if(!resizing) fadeOut($(this)); }
+			   
 			);
 		});
+		
+        function fadeIn(element){
+        	element.stop(true,true).fadeTo(100,1);
+        };
+		function fadeOut(element){
+        	element.stop(true,true).delay(400).fadeTo(180,0);
+        };
+		//init image dimensions
+		/*image.load(function(){
 			
-			
-			
-		//resize buttons	
-	    buttonResizeWidth.mousedown(function(e){
-		   e.preventDefault ? e.preventDefault() : e.returnValue = false;
-
-	    	startResize($(this).offset().left,false);
-	    	
-		}).mouseup(function(e){
-			stopResize();
-		});
-		
-		
-		
-	    buttonResize.mousedown(function(e){
-		   e.preventDefault ? e.preventDefault() : e.returnValue = false;
-
-	    	startResize($(this).offset().left,$(this).offset().top);
-	    	
-		}).mouseup(function(e){
-			stopResize();
-		});
-		
-		
-		
-	   buttonResizeHeight.mousedown(function(e){
-		   e.preventDefault ? e.preventDefault() : e.returnValue = false;
-
-	    	startResize(false,$(this).offset().top);
-		}).mouseup(function(e){
-			stopResize();
-		});
-		
-
-		html.bind('mousewheel', function(event, delta) {
-		            var dir = delta > 0 ? 'Up' : 'Down',
-		                vel = Math.abs(delta);
-		            if(dir == "Up") zoomIn(true);
-		            else zoomOut(true);
-		            return false;
-		 });
-		
-		
-		image.load(function(){
 			calculateDimensions();
-		});
+		});*/
+		reset();
 		
       };
       
       
-  
-
 
        
 ///////////////////////////////////////////////////////
@@ -185,8 +219,6 @@ more ideas:
 		yOff = parseInt(image.css("top"));
 		xOff = parseInt(image.css("left"));
 	};
-
-
 
 
 	//calculates..
@@ -271,7 +303,7 @@ more ideas:
 
 
 
-
+/*
 	function calculateCenterRatio(){
 		
 		var imageCenter 	= {x:currentImageWidth/2,y:currentImageHeight/2},
@@ -302,7 +334,7 @@ more ideas:
 
 		return ratio;
 	};
-
+*/
 		
    	//this would be much nicer, wouldn't it?
 	function calculateCenteredOffset(newWidth,newHeight){
@@ -319,37 +351,30 @@ more ideas:
 	};
 
 
-	//enlarges image one "step"
-	function zoomIn(notAnimated){ 
-  
-    	zoom++;
+
+	function zoomTo(value,soft){
+		zoom = value;
 		
 		var	oldImageWidth 	= currentImageWidth;
 		var	oldImageHeight 	= currentImageHeight;
-		//value between 1 and two that allows centered zooming
-		//it calculates the relative position of the image in the container
-	
-    	currentImageWidth= imageWidth+zoomFactor*zoom;
+		
+		currentImageWidth= imageWidth+zoomFactor*zoom;
     	currentImageHeight= imageHeight+zoomFactorY*zoom;
     	
     	
 		var ratio = calculateCenteredOffset(currentImageWidth,currentImageHeight);
-		xOff=ratio.x;
-		yOff=ratio.y;
-	/*		
 		
-		var ratio = calculateCenterRatio();
+		xOff = ratio.x;
+		yOff = ratio.y;
 		
-		xOff-= (currentImageWidth - oldImageWidth)/ratio.x;
-		yOff-= (currentImageHeight - oldImageHeight)/ratio.y;
-*/
+		if(!soft) _update();    	
+
+	}; 
 
 
- 		console.log("zoomIn: xOff: " + xOff  +  " currentImageWidth: " + currentImageWidth);
-	
-		_update();    
-
-
+	//enlarges image one "step"
+	function zoomIn(notAnimated){ 
+		zoomTo(zoom+1);
 	};
 
 	function zoomOut(notAnimated){
@@ -451,11 +476,18 @@ more ideas:
      };
       
 	function mouseMoveResize(e){
-		if(e.data.xOffMouse)
-			html.width(containerWidth+e.pageX-e.data.xOffMouse);
-		if(e.data.yOffMouse)
-			html.height(containerHeight+e.pageY-e.data.yOffMouse);
-
+		
+		if(e.data.xOffMouse){
+			var newWidth = containerWidth+ e.pageX-e.data.xOffMouse;
+			
+			if(	newWidth > opts.minWidth &&( opts.maxWidth == 0 ||  newWidth < opts.maxWidth)) html.width(newWidth);
+		}
+		if(e.data.yOffMouse){
+			var newHeight = containerHeight+e.pageY-e.data.yOffMouse;
+			if(newHeight > opts.minHeight &&( opts.maxHeight == 0 ||  newHeight < opts.maxHeight)) html.height(newHeight);
+		}
+		
+		if(opts.onChange) opts.onChange.call();
 	};
 
 
@@ -467,7 +499,7 @@ more ideas:
 function _update(notAnimated,onFinishAnimation){
 		image.stop(true,false); // stopping all image animaations
 		//_updateOffset();
-	
+			
 		if(notAnimated){ 
 			image.width(Math.round(currentImageWidth));  
 			image.offset({left:xOff,top:yOff});
@@ -487,6 +519,9 @@ function _update(notAnimated,onFinishAnimation){
   
 		}
     	info.text((100+zoomFactorPercentage*zoom)+"%");
+    	
+		if(opts.onChange) opts.onChange.call();
+
 };
 
 
@@ -500,6 +535,20 @@ function _update(notAnimated,onFinishAnimation){
 	/**
 	*
 	**/
+	
+    this.setImage = function(url){
+    	this.setData({imageUrl:url});
+    	
+    };
+  
+    this.setData = function(data){
+    	 $.extend(true, opts, data);  	
+		if(!data.zoom) opts.zoom=0;
+		if(!data.width) opts.width=containerWidth;
+		if(!data.height) opts.height=containerHeight;
+ 		reset();
+    };
+   
     this.getData = function(){
 		return {
 				offsetLeft:xOff,
@@ -530,19 +579,32 @@ function _update(notAnimated,onFinishAnimation){
     
 
   $.fn.superCrop.defaults = {
-    limitToContainerFormat: true,
-	maxZoom: 200,
-	minZoom: 10,
+  	
+    limitToContainerFormat: false,
+    
+	zoom: 0, 		
 	stepSize: 10,
-	mouseWheel: true
-//  allowZoom:true
+    allowZoom:true, 
+    mouseWheel: true,
+	maxZoom: 200,	
+	minZoom: 10,
+	
+	maxWidth: 900, 	
+	minWidth: 40, 
+	maxHeight: 400, 
+	minHeight: 80,
+	allowResizeWidth:true,	
+	allowResizeHeight:true,
+	
+	xOffset: 0,	
+	yOffset: 0,
+	
+	onChange: false
+//onInit
+// onResize, onDoneResizing, onDragImage, onDropImage, onZoom
+// onDoneChangeing
 //  incrementalZoom:false
-//	allowResizeWidth:true
-//	allowResizeHeight:true
-//	maxWidth
-// 	minWidth
-//	maxHeight
-//	minHeight
+// maxImageWidth, maxImageHeight
 //	autoWidth
 //	autoHeight
   };    

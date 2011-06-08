@@ -14,30 +14,38 @@
 </head>
 
 <body>
-	<div style="width:800px; margin-left:30px;">
+	<div style=" margin-left:30px;">
 	<br>
 	
 <b>jquery superCrop - demo</b><br>
  v.01
 <div  style=" margin-top:50px;">
-<div id="test" style="width:400px; height:300px; float:left;"></div>
-<div id="test2" style="width:400px; height:300px; float:left;"></div>
+<div id="test" style="min-width:400px; min-height:300px; float:left;"></div>
+<div id="test2" style="min-width:400px; min-height:300px; float:left;"></div>
 
 </div>
 <div  style="clear:left;">
-<div id="test4" style="width:600px; height:300px; float:left;"></div>
-<div id="test3" style="width:200px; height:300px; float:left;"></div>
+<div id="test4" style="min-width:400px; min-height:300px; float:left;"></div>
+<div id="test3" style="min-width:400px; min-height:300px; float:left;"></div>
 
 </div>
 
 </div>
-
+<div style="padding:40px; clear:left;">
 <a href="#" id="getData">get Data</a>
+<a href="#" id="changeImage1">change Image 1</a>
+<a href="#" id="changeImage2">change Image 2</a>
+<a href="#" id="setData">set Data</a>
+
+
+</div>
+<div id="target" style="width:900px; max-height:400px; overflow:scroll; clear:both"></div>
 <script type="text/javascript">
 $(document).ready(function() {
 
-$("#test").superCrop({imageUrl:"http://www.pressreleasepoint.com/sites/all/modules/feedbuttons/buttons/feed-icon32x32.png"});
-$("#test2").superCrop({imageUrl:"http://quickrblog.com/images/quickr_logo.png"});
+$("#test").superCrop({imageUrl:"http://egoditor-media-hosting-europe.s3.amazonaws.com/ego-mag-test___egoditor_com/css/title.png",width:200,height:100});
+$("#test2").superCrop({imageUrl:"http://quickrblog.com/images/quickr_logo.png",zoom:20,
+onChange:function(){console.log("meow");}});
 $("#test3").superCrop({imageUrl:"http://wallpapers-diq.org/wallpapers/42/Yellow_Garden_Flowers.jpg"});
 $("#test4").superCrop({imageUrl:"http://crazy-frankenstein.com/free-wallpapers-files/flowers-wallpapers/orchid-wallpapers/pink-orchids-wallpaper.jpg"});
 
@@ -45,10 +53,25 @@ var test4 = $("#test4").data("SuperCrop");
 $("#getData").click(function(){
 	console.log(JSON.stringify(test4.getData()));
 	appendPreview(test4.getData());
+	return false;
 });
 
+$("#changeImage1").click(function(){
+test4.setImage("http://crazy-frankenstein.com/free-wallpapers-files/flowers-wallpapers/orchid-wallpapers/pink-orchids-wallpaper.jpg");
+	return false;
+});
+$("#changeImage2").click(function(){
+	test4.setImage("http://wallpapers-diq.org/wallpapers/42/Yellow_Garden_Flowers.jpg");
+	return false;
+});
+
+$("#setData").click(function(){
+test4.setData({imageUrl:"http://2.bp.blogspot.com/_qmAYDbVsF2U/TTRDwyw6Y6I/AAAAAAAAAE8/5p8mXWX4dlk/s1600/blue-to-purple-perennial-flowers-1.jpg",
+zoom:10,xOffset:0,width:250});
+	return false;
+});
 function appendPreview(data){
-	$("body").append("<div  style='width:"+data.cropWidth+ "px; height:" + data.cropHeight  +"px; overflow:hidden; position:relative; float:left;'><img src='"+ data.imageUrl+"' style='width:"+data.imageWidth+ "px; height:" + data.imageHeight  +"px; position:absolute; top:"+data.offsetTop+"px; left:"+ data.offsetLeft+"px'/></div>")
+	$("#target").append("<div  style='width:"+data.cropWidth+ "px; height:" + data.cropHeight  +"px; overflow:hidden; position:relative; float:left;'><img src='"+ data.imageUrl+"' style='width:"+data.imageWidth+ "px; height:" + data.imageHeight  +"px; position:absolute; top:"+data.offsetTop+"px; left:"+ data.offsetLeft+"px'/></div>")
 	
 };
 
