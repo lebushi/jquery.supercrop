@@ -12,16 +12,21 @@
 		
 	
 </head>
-
+<style type=text/css>
+	body {color:#444; font-size:14px; line-height:1.4}
+</style>
 <body>
 	<div style=" margin-left:30px;">
 	<br>
 	
-<b>jquery superCrop - demo</b><br>
- v.01
+<b>jquery.superCrop (v0.1)</b><br>
+ demonstration
 <div  style=" margin-top:50px;">
-<div id="test" style="min-width:400px; min-height:300px; float:left;"></div>
-<div id="test2" style="min-width:400px; min-height:300px; float:left;"></div>
+<div id="test_container" style="width:800px; min-height:300px; float:left;">
+	<div id="test" style="float:left; margin-right:10px; margin-bottom:10px;"></div>
+		<b>Lorem ipsum dolor sit amet, consectetuer adipiscing elit.</b>
+		 Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. Nam quam nunc, blandit vel, luctus pulvinar,
+</div>
 
 </div>
 <div  style="clear:left;">
@@ -43,10 +48,9 @@
 <script type="text/javascript">
 $(document).ready(function() {
 
-$("#test").superCrop({imageUrl:"http://egoditor-media-hosting-europe.s3.amazonaws.com/ego-mag-test___egoditor_com/css/title.png",width:200,height:100});
-$("#test2").superCrop({imageUrl:"http://quickrblog.com/images/quickr_logo.png",zoom:20,
-onChange:function(){console.log("meow");}});
-$("#test3").superCrop({imageUrl:"http://wallpapers-diq.org/wallpapers/42/Yellow_Garden_Flowers.jpg"});
+$("#test").superCrop({imageUrl:"http://www.uimages.org/wp-content/uploads/2011/05/Chamomile-Flowers-1-1024x768.jpg",width:250,height:200, zoom:0, fadeToolsOnHover: true});
+
+$("#test3").superCrop({imageUrl:"http://wallpapers-diq.org/wallpapers/42/Yellow_Garden_Flowers.jpg?v=" +  Math.random()*100,zoom:10});
 $("#test4").superCrop({imageUrl:"http://crazy-frankenstein.com/free-wallpapers-files/flowers-wallpapers/orchid-wallpapers/pink-orchids-wallpaper.jpg"});
 
 var test4 = $("#test4").data("SuperCrop");
@@ -66,7 +70,7 @@ $("#changeImage2").click(function(){
 });
 
 $("#setData").click(function(){
-test4.setData({imageUrl:"http://2.bp.blogspot.com/_qmAYDbVsF2U/TTRDwyw6Y6I/AAAAAAAAAE8/5p8mXWX4dlk/s1600/blue-to-purple-perennial-flowers-1.jpg",
+test4.setData({imageUrl:"http://2.bp.blogspot.com/_qmAYDbVsF2U/TTRDwyw6Y6I/AAAAAAAAAE8/5p8mXWX4dlk/s1600/blue-to-purple-perennial-flowers-1.jpg?=v"+  Math.random()*100,
 zoom:10,xOffset:0,width:250});
 	return false;
 });

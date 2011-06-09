@@ -26,26 +26,22 @@ more ideas:
 		var     $el         	= $(el),
                 that         	= this,
                 opts    		= $.extend({}, $.fn.superCrop.defaults, options),
-				html 			= $('<div class="supercrop_container"><div class="supercrop_resize"></div><div class="supercrop_resize_height"></div><div class="supercrop_resize_width"></div><div class="supercrop_inner"><img class="supercrop_image"/><div class="supercrop_buttonpane"><button class="supercrop_button supercrop_zoom_in">+</button><button class="supercrop_button supercrop_zoom_out">-</button></div><div class="supercrop_info">100%</div></div></div>'),
+				html 			= $('<div class="supercrop_container"><div class="supercrop_loader"></div><div class="supercrop_resize"></div><div class="supercrop_resize_height"></div><div class="supercrop_resize_width"></div><div class="supercrop_inner"><img class="supercrop_image"/><div class="supercrop_buttonpane"><button class="supercrop_button supercrop_zoom_in">+</button><button class="supercrop_button supercrop_zoom_out">-</button></div><div class="supercrop_info">100%</div></div></div>'),
 				buttonZoomIn	= $(".supercrop_zoom_in",html),
 				buttonZoomOut	= $(".supercrop_zoom_out",html),
 				buttonResizeWidth	= $(".supercrop_resize_width",html),
 				buttonResizeHeight	= $(".supercrop_resize_height",html),
 				buttonResize	= $(".supercrop_resize",html),
+				loader			= $(".supercrop_loader",html),
 
 				image			= $(".supercrop_image",html),
 				info			= $(".supercrop_info",html),
 				
 				zoomFactorPercentage = opts.stepSize,
 				zooming			= false,
-				resizing		= false;				
+				resizing		= false,
 				
-				$el.append(html);
-			
-				
-				
-				
-		var		zoom,xOff,yOff,containerWidth, containerHeight,				
+				zoom,xOff,yOff,containerWidth, containerHeight,				
  				imageWidth, imageHeight,
 				currentImageWidth, currentImageHeight,
  				ratio,				
@@ -54,42 +50,50 @@ more ideas:
 			
 			
 			
+		$el.append(html);
 		$el.data('SuperCrop', this);			        
 				        
 		
 
 	//check	if any dependencies are violated in the default parameters
-	function reset(){
+	function initImage(){
+		
 		zoom = opts.zoom;
 		xOff = opts.xOffset;
 		yOff = opts.yOffset;
+		
 		image.attr("src",opts.imageUrl);
 		image.css("width","auto").css("height","auto");				
       					
-		
+		containerWidth		= opts.width;
+		containerHeight		= opts.height;
+
+		if(!opts.width) containerWidth = html.parent().width();
+		html.width(containerWidth);
+		if(!opts.height) containerHeight = html.parent().height();
+		html.height(containerHeight);
+
 	//	refreshOffset();
+		loader.show();
 		image.load(function(){
+			loader.fadeOut(180);
 			calculateDimensions();
 		//	alert("meow");
 			zoomTo(opts.zoom);
 			_update();
+			
 		});
+		/*image.ready(function(){
+			loader.hide();
+		});*/
 				
 	};		
 			
-	function calculateDimensions(){
+
+	function calculateDimensions(){		
 		
-				containerWidth		= opts.width;
-				containerHeight		= opts.height;
-
-				if(!opts.width) containerWidth = html.parent().width();
-				html.width(containerWidth);
-				if(!opts.height) containerHeight = html.parent().height();
-				html.height(containerHeight);
-
  				imageWidth 			= image.width();
-			 	imageHeight 		= image.height();
-	
+			 	imageHeight 		= image.height();	
 	
 				currentImageWidth 	= imageWidth;
 				currentImageHeight 	= imageHeight;
@@ -98,16 +102,15 @@ more ideas:
 				
 				//what gets subtracted/added from the width of the picture
 				zoomFactor 			= imageWidth/(100/zoomFactorPercentage); 
-				zoomFactorY 		= imageHeight/(100/zoomFactorPercentage);
-				
+				zoomFactorY 		= imageHeight/(100/zoomFactorPercentage);				
 				 
-				console.log("width: " + containerWidth + "   height: " + containerHeight);		
-			
+				_debug("width: " + containerWidth + "   height: " + containerHeight);				
 				
 	};
+	
 				
        /**DELETEME*/          
-      function init(){        
+   function initUi(){        
 	
 		//init image dragging
 		image.mousedown(function(e){
@@ -116,29 +119,29 @@ more ideas:
 		   
 		   //calculate 
 		   var imageOffset = $(this).offset();
-		   startDrag(e.pageX-imageOffset.left,e.pageY-imageOffset.top);
+		   startDrag(e.pageX-imageOffset.left, e.pageY-imageOffset.top);
 		});
-
+	
 		
 		//init zoom
 		if(opts.allowZoom){
 			buttonZoomOut.mousedown(function(e){zoomOut();});
 			buttonZoomIn.mousedown(function(e){ zoomIn();});		   
 			
-			html.bind('mousewheel', function(event, delta) {
+			html.bind('mousewheel', function(e, delta) {
+					   e.preventDefault ? e.preventDefault() : e.returnValue = false;
+
 			            var dir = delta > 0 ? 'Up' : 'Down',
 			                vel = Math.abs(delta);
 			            if(dir == "Up") zoomIn(true);
 			            else zoomOut(true);
+			          
 			            return false;
 			 });		
 		}
 		
 		
 		//init container resizing
-		
-		
-		//addingd fading animation to resizebars
 	 
 		
 				
@@ -169,6 +172,7 @@ more ideas:
 		}	
 			
 		if(opts.allowResizeHeight && opts.allowResizeWidth){	
+	   		
 	   		buttonResize.mousedown(function(e){
 			  e.preventDefault ? e.preventDefault() : e.returnValue = false;
 		      startResize($(this).offset().left,$(this).offset().top);	    	
@@ -178,8 +182,7 @@ more ideas:
 			
 			buttonResize.hover(
 			   function() {if(!resizing){  fadeIn(buttonResizeHeight); fadeIn(buttonResizeWidth); }},
-			   function() { if(!resizing){ fadeOut(buttonResizeHeight); fadeOut(buttonResizeWidth); }}
-			   
+			   function() { if(!resizing){ fadeOut(buttonResizeHeight); fadeOut(buttonResizeWidth); }}			   
 			);
 			
 		}
@@ -193,18 +196,41 @@ more ideas:
 			);
 		});
 		
-        function fadeIn(element){
-        	element.stop(true,true).fadeTo(100,1);
+  
+        
+        
+        if(opts.fadeToolsOnHover){
+	        var elements = $(".supercrop_buttonpane, .supercrop_info",html);
+	        fadeOut(elements);
+	        html.hover(
+				   function() { if(!resizing)  fadeIn(elements,100,0.8); },
+				   function() { if(!resizing) fadeOut(elements); }				   
+			);
+		}
+
+        
+        
+        
+        function fadeIn(element,duration,opacity){
+        	if(!duration) duration = 100;
+        	if(!opacity) opacity = 0.4;
+        	element.stop(true,true).fadeTo(duration,opacity);
         };
-		function fadeOut(element){
-        	element.stop(true,true).delay(400).fadeTo(180,0);
+		function fadeOut(element,duration,delay){
+        	if(!duration) duration = 180;
+        	if(!delay) delay = 400;
+        	element.stop(true,true).delay(delay).fadeTo(duration,0);
         };
+        
 		//init image dimensions
 		/*image.load(function(){
 			
 			calculateDimensions();
 		});*/
-		reset();
+		initImage();
+		
+		if(opts.onInit) opts.onInit.call();
+
 		
       };
       
@@ -237,7 +263,7 @@ more ideas:
 		
 		var tempXOffRoot = tempYOff;
 		var tempYOffRoot = tempXOff;
-    //	console.log("refreshOffset() ---- tempXOff: " + tempXOff  + " - " +  html.offset().left + "  tempYOff: " + tempYOff  + " -  " +  html.offset().top+ " image: " + currentImageHeight + " " + containerHeight + " - " + currentImageWidth + "  " + containerWidth + " zoom: " + zoom  + " ZoomFactorX: " + zoomFactor);
+    //	_debug("refreshOffset() ---- tempXOff: " + tempXOff  + " - " +  html.offset().left + "  tempYOff: " + tempYOff  + " -  " +  html.offset().top+ " image: " + currentImageHeight + " " + containerHeight + " - " + currentImageWidth + "  " + containerWidth + " zoom: " + zoom  + " ZoomFactorX: " + zoomFactor);
 	
 		//VERTICAL
 		//if image-height is still larger then the container 
@@ -270,8 +296,8 @@ more ideas:
 	   	 }else{
 	   	 	tempXOff = 0;
 	   	 }              
-       	console.log("xOff: " + xOff + " tempXOff: " + tempXOff  + " html.offset.left- " +  html.offset().left + "  ciw - cw" + (currentImageWidth-containerWidth)  + "  " +   ( tempXOff - html.offset().left )   + "  " + ((currentImageWidth-containerWidth) + (xOff ) < 0 ) );
-	    console.log("yOff: " + yOff + " tempXOff: " + tempYOff  + " html.offset.top- " +  html.offset().top + "  ciw - cw" + (currentImageWidth-containerWidth)  + "  " +   ( tempXOff - html.offset().left )   + "  " + ((currentImageWidth-containerWidth) + (yOff) < 0 ) );
+       	_debug("xOff: " + xOff + " tempXOff: " + tempXOff  + " html.offset.left- " +  html.offset().left + "  ciw - cw" + (currentImageWidth-containerWidth)  + "  " +   ( tempXOff - html.offset().left )   + "  " + ((currentImageWidth-containerWidth) + (xOff ) < 0 ) );
+	    _debug("yOff: " + yOff + " tempXOff: " + tempYOff  + " html.offset.top- " +  html.offset().top + "  ciw - cw" + (currentImageWidth-containerWidth)  + "  " +   ( tempXOff - html.offset().left )   + "  " + ((currentImageWidth-containerWidth) + (yOff) < 0 ) );
 									           	                                            
                                                                                                                  
 	   //if(tempXOff != xOff|| tempYOff != yOff) 
@@ -287,8 +313,7 @@ more ideas:
 
 	
 	//checks if the container/image has no inner margins
-	function imageInBounds(){
-		
+	function imageInBounds(){		
 		//in case offset is out of sync due to stopped animation
 		var yOffTemp = image.offset().top -html.offset().top,
 		xOffTemp = image.offset().left-html.offset().left;
@@ -326,7 +351,7 @@ more ideas:
 			
 			///RECALCULATE XOFF
 		
-			console.log("calculateCenterRatio() maxDistance: " +Math.round( maxDistance.x )+ " " +Math.round(maxDistance.y) + 
+			_debug("calculateCenterRatio() maxDistance: " +Math.round( maxDistance.x )+ " " +Math.round(maxDistance.y) + 
 			" ---- currentDistance: " + Math.round(currentDistance.x) + " " + Math.round(currentDistance.y) + " ---- ratio: " + ratio.x + " " + ratio.y +
 			" xOff: " + xOff + " yOff: " +yOff + 
 			" imageCenter.x: " + imageCenter.x + " imageCenter.y : " +imageCenter.y );
@@ -406,8 +431,8 @@ more ideas:
 				xOff+= (oldImageWidth-currentImageWidth)/ratio.x;  
 				yOff+= (oldImageHeight-currentImageHeight)/ratio.y;
 				*/
-				console.log("zoomOut-- xOffDifference: " +  (oldImageWidth-currentImageWidth) + " ratio.x: " + ratio.x + " xOff+= "  + (oldImageWidth-currentImageWidth)/ratio.x);
-				console.log("zoomOut-- yOffDifference: " +  (oldImageHeight-currentImageHeight) + " ratio.y: " + ratio.y + " yOff+= "  + (oldImageHeight-currentImageHeight)/ratio.y);
+				_debug("zoomOut-- xOffDifference: " +  (oldImageWidth-currentImageWidth) + " ratio.x: " + ratio.x + " xOff+= "  + (oldImageWidth-currentImageWidth)/ratio.x);
+				_debug("zoomOut-- yOffDifference: " +  (oldImageHeight-currentImageHeight) + " ratio.y: " + ratio.y + " yOff+= "  + (oldImageHeight-currentImageHeight)/ratio.y);
 				
 		 	//	var callback = refreshOffset;
 	        	_update(false,refreshOffset);
@@ -421,12 +446,17 @@ more ideas:
 
 	//called on mousemove-event while dragging
 	function mouseMove(e){
+		
+		//IE 7-8 necessary
+		if(!e) 	e = window.event;
+		    	e.preventDefault();
+		
 		xOff=e.pageX-e.data.xOffMouse;
 		yOff=e.pageY-e.data.yOffMouse;
 		
 		_update(true);	  
 		
-		console.log("mouseMove  xOff: " + xOff + "  yOff: " + yOff + "  xOffMouse: " + e.data.xOffMouse + "  yOffMouse: " + e.data.yOffMouse  + " e.pageX: " + e.pageX + " e.pageY " + e.pageY  + " container.offset(): " + html.offset().left);
+		_debug("mouseMove  xOff: " + xOff + "  yOff: " + yOff + "  xOffMouse: " + e.data.xOffMouse + "  yOffMouse: " + e.data.yOffMouse  + " e.pageX: " + e.pageX + " e.pageY " + e.pageY  + " container.offset(): " + html.offset().left);
 		
 	};
 
@@ -446,7 +476,7 @@ more ideas:
     	$(document).unbind("mousemove",mouseMove);
 		xOff-=html.offset().left;
 		yOff-=html.offset().top;
-		console.log("stopDrag()");
+		_debug("stopDrag()");
     	if(!imageInBounds()) 
 		refreshOffset();
  		
@@ -463,11 +493,13 @@ more ideas:
 		$(document).unbind("mouseup",stopResize).mouseup(stopResize);
       	
     };
+    
     function stopResize(){
     	resizing = false;		
 
 		$(document).unbind("mouseup",stopResize);
     	$(document).unbind("mousemove",mouseMoveResize);
+    
       	containerWidth = html.width();
       	containerHeight = html.height();
 		
@@ -476,9 +508,12 @@ more ideas:
      };
       
 	function mouseMoveResize(e){
-		
+	
+		if(!e) 	e = window.event;
+	    	e.preventDefault();
+	
 		if(e.data.xOffMouse){
-			var newWidth = containerWidth+ e.pageX-e.data.xOffMouse;
+			var newWidth = containerWidth + e.pageX-e.data.xOffMouse;
 			
 			if(	newWidth > opts.minWidth &&( opts.maxWidth == 0 ||  newWidth < opts.maxWidth)) html.width(newWidth);
 		}
@@ -525,6 +560,10 @@ function _update(notAnimated,onFinishAnimation){
 };
 
 
+function _debug(string){
+	if(opts.devmode && string && !$.browser.msie && window.console && console.debug) console.log(string);
+};
+
 //////////////////////////////////////////////////////
 
 
@@ -546,7 +585,7 @@ function _update(notAnimated,onFinishAnimation){
 		if(!data.zoom) opts.zoom=0;
 		if(!data.width) opts.width=containerWidth;
 		if(!data.height) opts.height=containerHeight;
- 		reset();
+ 		initImage();
     };
    
     this.getData = function(){
@@ -566,7 +605,7 @@ function _update(notAnimated,onFinishAnimation){
 
     
     
-    init();    
+    initUi();    
    };
        
        
@@ -582,31 +621,34 @@ function _update(notAnimated,onFinishAnimation){
   	
     limitToContainerFormat: false,
     
-	zoom: 0, 		
+	zoom: 0, 
 	stepSize: 10,
     allowZoom:true, 
     mouseWheel: true,
 	maxZoom: 200,	
 	minZoom: 10,
 	
-	maxWidth: 900, 	
+	maxWidth: 900, 	//make it an array -> maxWidth, maxHeight  or  maxContainerSize.width & .height
 	minWidth: 40, 
-	maxHeight: 400, 
+	maxHeight: 400,  // minSize[] or {}
 	minHeight: 80,
 	allowResizeWidth:true,	
 	allowResizeHeight:true,
 	
-	xOffset: 0,	
+	xOffset: 0,		//array -> offset or javascript-object  offset.left
 	yOffset: 0,
 	
-	onChange: false
-//onInit
-// onResize, onDoneResizing, onDragImage, onDropImage, onZoom
-// onDoneChangeing
+	onChange: false,
+	onInit: false,
+    fadeToolsOnHover: false,
+	devmode: true
+//  disableAnimations
+// 	fitToContainerSize
+//	onInit
+//  onResize, onDoneResizing, onDragImage, onDropImage, onZoom
+//  onAfterChange
 //  incrementalZoom:false
-// maxImageWidth, maxImageHeight
-//	autoWidth
-//	autoHeight
+//  maxImageWidth, maxImageHeight, minImageHeight, minImageWidth
   };    
 
  
