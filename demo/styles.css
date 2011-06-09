@@ -21,7 +21,7 @@ body                    { padding: 0px; margin: 0; font-family: Arial; }
 	
 .supercrop_info         { position: absolute; top: 5px; right: 8px; : ; background: black; opacity: 0.5; padding: 5px; color: #fff; font-size: 9px; }
 .supercrop_info,
-.supercrop_loader         { -webkit-border-radius: 6px; -moz-border-radius: 6px; border-radius: 6px; }
+.supercrop_loader       { -webkit-border-radius: 6px; -moz-border-radius: 6px; border-radius: 6px; }
 .supercrop_zoom_in      { border-bottom: 1px solid #444; -webkit-border-top-left-radius: 8px; -webkit-border-top-right-radius: 8px; -moz-border-radius-topleft: 8px; -moz-border-radius-topright: 8px; border-top-left-radius: 8px; border-top-right-radius: 8px; }
-.supercrop_loader        { display:none;  position: absolute; top: 50%; left: 50%; margin-top: -15px; z-index: 999; width: 30px; height: 30px; margin-left: -15px; opacity: 0.8;  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";background: #333 url(img/loader.gif) no-repeat center center; }
-.supercrop_zoom_out      { -webkit-border-bottom-right-radius: 8px; -webkit-border-bottom-left-radius: 8px; -moz-border-radius-bottomright: 8px; -moz-border-radius-bottomleft: 8px; border-bottom-right-radius: 8px; border-bottom-left-radius: 8px; }
+.supercrop_loader       { display:none;  position: absolute; top: 50%; left: 50%; margin-top: -15px; z-index: 999; width: 30px; height: 30px; margin-left: -15px; opacity: 0.8;  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";background: #111 url(img/loader.gif) no-repeat center center; }
+.supercrop_zoom_out     { -webkit-border-bottom-right-radius: 8px; -webkit-border-bottom-left-radius: 8px; -moz-border-radius-bottomright: 8px; -moz-border-radius-bottomleft: 8px; border-bottom-right-radius: 8px; border-bottom-left-radius: 8px; }

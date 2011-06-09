@@ -52,18 +52,24 @@ more ideas:
 			
 		$el.append(html);
 		$el.data('SuperCrop', this);			        
-				        
+		init();		        
 		
 
-	//check	if any dependencies are violated in the default parameters
-	function initImage(){
+
+   function init(){
+   	    _initUi();
+   	    _initImage();		
+		if(opts.onInit) opts.onInit.call();
+   };		
+   
+
+	function _initImage(){
 		
 		zoom = opts.zoom;
 		xOff = opts.xOffset;
 		yOff = opts.yOffset;
 		
 		image.attr("src",opts.imageUrl);
-		image.css("width","auto").css("height","auto");				
       					
 		containerWidth		= opts.width;
 		containerHeight		= opts.height;
@@ -77,8 +83,10 @@ more ideas:
 		loader.show();
 		image.load(function(){
 			loader.fadeOut(180);
-			calculateDimensions();
+			_calculateDimensions();
 		//	alert("meow");
+				image.css("width","auto").css("height","auto");				
+
 			zoomTo(opts.zoom);
 			_update();
 			
@@ -90,7 +98,7 @@ more ideas:
 	};		
 			
 
-	function calculateDimensions(){		
+	function _calculateDimensions(){		
 		
  				imageWidth 			= image.width();
 			 	imageHeight 		= image.height();	
@@ -108,16 +116,15 @@ more ideas:
 				
 	};
 	
-				
-       /**DELETEME*/          
-   function initUi(){        
+
+   function _initUi(){        
 	
 		//init image dragging
 		image.mousedown(function(e){
 		   //preventing default event from happening
 		   e.preventDefault ? e.preventDefault() : e.returnValue = false;
 		   
-		   //calculate 
+		   //calculate mouse offset
 		   var imageOffset = $(this).offset();
 		   startDrag(e.pageX-imageOffset.left, e.pageY-imageOffset.top);
 		});
@@ -139,33 +146,21 @@ more ideas:
 			            return false;
 			 });		
 		}
-		
-		
 		//init container resizing
-	 
-		
-				
-			
 		if(opts.allowResizeWidth){				
 		    buttonResizeWidth.mousedown(function(e){
 			   e.preventDefault ? e.preventDefault() : e.returnValue = false;
 		    	startResize($(this).offset().left,false);	    	
-			}).mouseup(function(e){
-				stopResize();
 			});
 			
 		}else{
 			buttonResizeWidth.hide()
 		}
 		
-		
-		
 		if(opts.allowResizeHeight){		
 		   buttonResizeHeight.mousedown(function(e){
 			   e.preventDefault ? e.preventDefault() : e.returnValue = false;
 		    	startResize(false,$(this).offset().top);
-			}).mouseup(function(e){
-				stopResize();
 			});
 		}else{
 			buttonResizeHeight.hide();
@@ -176,50 +171,52 @@ more ideas:
 	   		buttonResize.mousedown(function(e){
 			  e.preventDefault ? e.preventDefault() : e.returnValue = false;
 		      startResize($(this).offset().left,$(this).offset().top);	    	
-			}).mouseup(function(e){
-				stopResize();
 			});
 			
-			buttonResize.hover(
+		/*	buttonResize.mouseOver(
 			   function() {if(!resizing){  fadeIn(buttonResizeHeight); fadeIn(buttonResizeWidth); }},
 			   function() { if(!resizing){ fadeOut(buttonResizeHeight); fadeOut(buttonResizeWidth); }}			   
-			);
+			);*/
 			
 		}
 
 
-		$.each([buttonResizeHeight,buttonResizeWidth],function(){ 
-			this.hover(
-			   function() {if(!resizing)  fadeIn($(this)); },
-			   function() { if(!resizing) fadeOut($(this)); }
-			   
-			);
-		});
-		
-  
-        
-        
         if(opts.fadeToolsOnHover){
 	        var elements = $(".supercrop_buttonpane, .supercrop_info",html);
-	        fadeOut(elements);
+	        fadeTo(elements,100,0);
 	        html.hover(
-				   function() { if(!resizing)  fadeIn(elements,100,0.8); },
-				   function() { if(!resizing) fadeOut(elements); }				   
+				   function() { if(!resizing)  fadeTo(elements,0.8); },
+				   function() { if(!resizing) fadeTo(elements,0,180,400); }				   
 			);
 		}
+	
+		
+		handleHover(buttonResizeHeight);  
+  		handleHover(buttonResizeWidth);
+        
+        
 
         
-        
-        
-        function fadeIn(element,duration,opacity){
-        	if(!duration) duration = 100;
-        	if(!opacity) opacity = 0.4;
-        	element.stop(true,true).fadeTo(duration,opacity);
+        function handleHover(element){
+        	element.hover(
+        		function(){ if(!resizing)  fadeTo($(this),0.4);},
+        		function(){ if(!resizing) fadeTo($(this),0)}
+        	);
+        	element.bind("mousedown",function(){
+        		$(document).bind("mouseup",fadeOut);
+        	});
+        	        	
+        	function fadeOut(){
+        		  fadeTo(element,0);
+        		  $(document).unbind("mouseup",fadeOut);
+        	};
         };
-		function fadeOut(element,duration,delay){
-        	if(!duration) duration = 180;
-        	if(!delay) delay = 400;
-        	element.stop(true,true).delay(delay).fadeTo(duration,0);
+        
+        
+		function fadeTo(element,opacity,duration,delay){
+			if(!delay) delay = 0;
+			if(!duration) duration = 100;
+        	element.stop(true,true).delay(delay).fadeTo(duration,opacity);
         };
         
 		//init image dimensions
@@ -227,15 +224,29 @@ more ideas:
 			
 			calculateDimensions();
 		});*/
-		initImage();
-		
-		if(opts.onInit) opts.onInit.call();
+
 
 		
-      };
+  };
       
-      
+  //removes all handlers and
+  function disableUi(){
+  	html.unbind('mousewheel');
+  	image.unbind("mousedown");
+  
 
+  	$.each([buttonResizeHeight,buttonResizeWidth,buttonZoomOut,buttonZoomIn],function(){
+  			$(this).hide();
+  			$(this).unbind("mousedown");
+  	});
+  };
+  //removes all handlers and
+  function enableUi(){
+  	$.each([buttonResizeHeight,buttonResizeWidth,buttonZoomOut,buttonZoomIn],function(){
+  			$(this).show();
+  	});
+  	initUi();
+  };
        
 ///////////////////////////////////////////////////////
 
@@ -252,8 +263,8 @@ more ideas:
   
 		//removing element offset before calculating the new offset 
 	
-//_updateOffset();
-	//	currentImageHeight = image.height();
+		//_updateOffset();
+		//currentImageHeight = image.height();
 		
 		//yOff -= html.offset().top;
 
@@ -281,12 +292,11 @@ more ideas:
     	}
 		
 		
-	//	currentImageWidth = image.width();
-	//	xOff -= html.offset().left;
+		//	currentImageWidth = image.width();
+		//	xOff -= html.offset().left;
 		
    		
 		//HORIZONTAL
-		//MEWO
 	   	 if(currentImageWidth > containerWidth){                                                                     
 	   	     if(tempXOff>=0) tempXOff = 0;                                                                                    
 	   	      if((currentImageWidth-containerWidth) + (xOff) < 0 ) tempXOff = -(currentImageWidth-containerWidth);   
@@ -362,6 +372,7 @@ more ideas:
 */
 		
    	//this would be much nicer, wouldn't it?
+   	//calculates the new that allows centered zooming
 	function calculateCenteredOffset(newWidth,newHeight){
 		var returnOffset = {x:0,y:0};
 		
@@ -479,6 +490,7 @@ more ideas:
 		_debug("stopDrag()");
     	if(!imageInBounds()) 
 		refreshOffset();
+		
  		
 	};
 
@@ -569,7 +581,8 @@ function _debug(string){
 
 
 
-  
+    this.disable = function(){};
+	this.enable = function(){};
     this.destroy = function(){};
 	/**
 	*
@@ -585,7 +598,7 @@ function _debug(string){
 		if(!data.zoom) opts.zoom=0;
 		if(!data.width) opts.width=containerWidth;
 		if(!data.height) opts.height=containerHeight;
- 		initImage();
+ 		_initImage();
     };
    
     this.getData = function(){
@@ -605,7 +618,7 @@ function _debug(string){
 
     
     
-    initUi();    
+        
    };
        
        
@@ -619,36 +632,38 @@ function _debug(string){
 
   $.fn.superCrop.defaults = {
   	
-    limitToContainerFormat: false,
-    
-	zoom: 0, 
-	stepSize: 10,
-    allowZoom:true, 
-    mouseWheel: true,
-	maxZoom: 200,	
-	minZoom: 10,
-	
-	maxWidth: 900, 	//make it an array -> maxWidth, maxHeight  or  maxContainerSize.width & .height
-	minWidth: 40, 
-	maxHeight: 400,  // minSize[] or {}
-	minHeight: 80,
-	allowResizeWidth:true,	
-	allowResizeHeight:true,
-	
-	xOffset: 0,		//array -> offset or javascript-object  offset.left
-	yOffset: 0,
-	
-	onChange: false,
-	onInit: false,
-    fadeToolsOnHover: false,
-	devmode: true
-//  disableAnimations
-// 	fitToContainerSize
-//	onInit
-//  onResize, onDoneResizing, onDragImage, onDropImage, onZoom
-//  onAfterChange
-//  incrementalZoom:false
-//  maxImageWidth, maxImageHeight, minImageHeight, minImageWidth
+	    limitToContainerFormat: false,
+	    
+		zoom: 0, 
+		stepSize: 10,
+	    allowZoom:true, 
+	    mouseWheel: true,
+		maxZoom: 200,	
+		minZoom: 10,
+		
+		maxWidth: 900, 	//make it an array -> maxWidth, maxHeight  or  maxContainerSize.width & .height
+		minWidth: 40, 
+		maxHeight: 400,  // minSize[] or {}
+		minHeight: 80,
+		allowResizeWidth:true,	
+		allowResizeHeight:true,
+		
+		xOffset: 0,		//array -> offset or javascript-object  offset.left
+		yOffset: 0,
+		offset: {left:0, top:0},
+		onChange: false,
+		onInit: false,
+	    fadeToolsOnHover: false,
+		
+		devmode: true
+		
+	//  disableAnimations
+	// 	fitToContainerSize
+	//	onInit
+	//  onResize, onDoneResizing, onDragImage, onDropImage, onZoom
+	//  onAfterChange
+	//  incrementalZoom:false
+	//  maxImageWidth, maxImageHeight, minImageHeight, minImageWidth
   };    
 
  

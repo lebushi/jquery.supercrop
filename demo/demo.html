@@ -22,8 +22,8 @@
 <b>jquery.superCrop (v0.1)</b><br>
  demonstration
 <div  style=" margin-top:50px;">
-<div id="test_container" style="width:800px; min-height:300px; float:left;">
-	<div id="test" style="float:left; margin-right:10px; margin-bottom:10px;"></div>
+<div id="test_container" style="width:800px; min-height:300px; float:left; margin-bottom:20px;">
+	<div id="test" style="float:left; margin-right:15px; margin-bottom:5px;"></div>
 		<b>Lorem ipsum dolor sit amet, consectetuer adipiscing elit.</b>
 		 Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. Nam quam nunc, blandit vel, luctus pulvinar,
 </div>
@@ -48,7 +48,7 @@
 <script type="text/javascript">
 $(document).ready(function() {
 
-$("#test").superCrop({imageUrl:"http://www.uimages.org/wp-content/uploads/2011/05/Chamomile-Flowers-1-1024x768.jpg",width:250,height:200, zoom:0, fadeToolsOnHover: true});
+$("#test").superCrop({imageUrl:"http://www.uimages.org/wp-content/uploads/2011/05/Chamomile-Flowers-1-1024x768.jpg?v=" +  Math.random()*100,width:$("#test_container").width(),maxWidth:$("#test_container").width(),height:200, limitToContainerFormat:true, zoom:0, fadeToolsOnHover: true});
 
 $("#test3").superCrop({imageUrl:"http://wallpapers-diq.org/wallpapers/42/Yellow_Garden_Flowers.jpg?v=" +  Math.random()*100,zoom:10});
 $("#test4").superCrop({imageUrl:"http://crazy-frankenstein.com/free-wallpapers-files/flowers-wallpapers/orchid-wallpapers/pink-orchids-wallpaper.jpg"});
@@ -61,11 +61,11 @@ $("#getData").click(function(){
 });
 
 $("#changeImage1").click(function(){
-test4.setImage("http://crazy-frankenstein.com/free-wallpapers-files/flowers-wallpapers/orchid-wallpapers/pink-orchids-wallpaper.jpg");
+test4.setImage("http://crazy-frankenstein.com/free-wallpapers-files/flowers-wallpapers/orchid-wallpapers/pink-orchids-wallpaper.jpg?v=" +  Math.random()*100);
 	return false;
 });
 $("#changeImage2").click(function(){
-	test4.setImage("http://wallpapers-diq.org/wallpapers/42/Yellow_Garden_Flowers.jpg");
+	test4.setImage("http://wallpapers-diq.org/wallpapers/42/Yellow_Garden_Flowers.jpg?v=" +  Math.random()*100);
 	return false;
 });
 
