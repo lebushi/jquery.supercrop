@@ -2,15 +2,6 @@
 
 
 
-/*TODO -
-BASICS
-
-FEATURES
-
-more ideas:
-
-*/
-
 /*
  * SuperCrop v0.1 - jQuery plugin
  * Copyright (c) 2011 Stephan Reich
@@ -65,7 +56,7 @@ more ideas:
 
 	function _initImage(){
 		
-		zoom = opts.zoom;
+		zoom = (opts.zoom/10)-10;
 		xOff = opts.xOffset;
 		yOff = opts.yOffset;
 		
@@ -87,7 +78,7 @@ more ideas:
 		//	alert("meow");
 				image.css("width","auto").css("height","auto");				
 
-			zoomTo(opts.zoom);
+			zoomTo(zoom);
 			_update();
 			
 		});
@@ -183,7 +174,7 @@ more ideas:
 
         if(opts.fadeToolsOnHover){
 	        var elements = $(".supercrop_buttonpane, .supercrop_info",html);
-	        fadeTo(elements,100,0);
+	        fadeTo(elements,0,100);
 	        html.hover(
 				   function() { if(!resizing)  fadeTo(elements,0.8); },
 				   function() { if(!resizing) fadeTo(elements,0,180,400); }				   
@@ -595,7 +586,7 @@ function _debug(string){
   
     this.setData = function(data){
     	 $.extend(true, opts, data);  	
-		if(!data.zoom) opts.zoom=0;
+		if(!data.zoom) opts.zoom = 100;
 		if(!data.width) opts.width=containerWidth;
 		if(!data.height) opts.height=containerHeight;
  		_initImage();
@@ -634,7 +625,7 @@ function _debug(string){
   	
 	    limitToContainerFormat: false,
 	    
-		zoom: 0, 
+		zoom: 100, 
 		stepSize: 10,
 	    allowZoom:true, 
 	    mouseWheel: true,
