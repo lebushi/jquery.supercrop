@@ -17,13 +17,18 @@
 		var     $el         	= $(el),
                 that         	= this,
                 opts    		= $.extend({}, $.fn.superCrop.defaults, options),
-				html 			= $('<div class="supercrop_container"><div class="supercrop_loader"></div><div class="supercrop_resize"></div><div class="supercrop_resize_height"></div><div class="supercrop_resize_width"></div><div class="supercrop_inner"><img class="supercrop_image"/><div class="supercrop_buttonpane"><button class="supercrop_button supercrop_zoom_in">+</button><button class="supercrop_button supercrop_zoom_out">-</button></div><div class="supercrop_info">100%</div></div></div>'),
+				html 			= $('<div class="supercrop_container"><div class="supercrop_loader"></div><div class="supercrop_overlay_bottom"></div><div class="supercrop_overlay_right"></div><div class="supercrop_inner"><div class="supercrop_hello"><div class="supercrop_resize"></div><div class="supercrop_resize_height"></div><div class="supercrop_resize_width"></div><img class="supercrop_image"/></div></div><div class="supercrop_buttonpane"><button class="supercrop_button supercrop_zoom_in">+</button><button class="supercrop_button supercrop_zoom_out">-</button></div><div class="supercrop_info">100%</div></div>'),
 				buttonZoomIn	= $(".supercrop_zoom_in",html),
 				buttonZoomOut	= $(".supercrop_zoom_out",html),
 				buttonResizeWidth	= $(".supercrop_resize_width",html),
 				buttonResizeHeight	= $(".supercrop_resize_height",html),
 				buttonResize	= $(".supercrop_resize",html),
+				overlayRight	= $(".supercrop_overlay_right",html),
+				overlayBottom	= $(".supercrop_overlay_bottom",html),
+
+				buttonResize	= $(".supercrop_resize",html),
 				loader			= $(".supercrop_loader",html),
+				htmlInner  		= $(".supercrop_hello",html),
 
 				image			= $(".supercrop_image",html),
 				info			= $(".supercrop_info",html),
@@ -31,6 +36,7 @@
 				zoomFactorPercentage = opts.stepSize,
 				zooming			= false,
 				resizing		= false,
+				dragging        = false,
 				
 				zoom,xOff,yOff,containerWidth, containerHeight,				
  				imageWidth, imageHeight,
@@ -65,10 +71,14 @@
 		containerWidth		= opts.width;
 		containerHeight		= opts.height;
 
+
+
 		if(!opts.width) containerWidth = html.parent().width();
-		html.width(containerWidth);
+		htmlInner.width(containerWidth);
 		if(!opts.height) containerHeight = html.parent().height();
-		html.height(containerHeight);
+		htmlInner.height(containerHeight);
+
+		
 
 	//	refreshOffset();
 		loader.show();
@@ -120,6 +130,7 @@
 		   startDrag(e.pageX-imageOffset.left, e.pageY-imageOffset.top);
 		});
 	
+	//check for ie issue: http://stackoverflow.com/questions/5855135/css-pointer-events-property-alternative-for-ie
 		
 		//init zoom
 		if(opts.allowZoom){
@@ -190,8 +201,8 @@
         
         function handleHover(element){
         	element.hover(
-        		function(){ if(!resizing)  fadeTo($(this),0.4);},
-        		function(){ if(!resizing) fadeTo($(this),0)}
+        		function(){ if(!resizing && !dragging)  fadeTo($(this),0.4);},
+        		function(){ if(!resizing && !dragging) fadeTo($(this),0)}
         	);
         	element.bind("mousedown",function(){
         		$(document).bind("mouseup",fadeOut);
@@ -465,9 +476,9 @@
 	function startDrag(xOffMouse,yOffMouse){
 		image.stop(true,false); // stopping all image animaations
 		_updateOffset();
-		
     	$(document).unbind("mousemove",mouseMove).bind("mousemove",{xOffMouse:xOffMouse,yOffMouse:yOffMouse},mouseMove);
 		$(document).unbind("mouseup",stopDrag).mouseup(stopDrag);
+		dragging = true;
 		
 	};
 	
@@ -481,7 +492,7 @@
 		_debug("stopDrag()");
     	if(!imageInBounds()) 
 		refreshOffset();
-		
+		dragging = false;
  		
 	};
 
@@ -518,12 +529,22 @@
 		if(e.data.xOffMouse){
 			var newWidth = containerWidth + e.pageX-e.data.xOffMouse;
 			
-			if(	newWidth > opts.minWidth &&( opts.maxWidth == 0 ||  newWidth < opts.maxWidth)) html.width(newWidth);
+			if(	newWidth > opts.minWidth &&( opts.maxWidth == 0 ||  newWidth < opts.maxWidth)){
+				htmlInner.width(newWidth);
+				
+				if(newWidth <  opts.minOuterWidth) overlayRight.width(opts.minOuterWidth -newWidth);
+					overlayBottom.width(newWidth);
+			}
 		}
 		if(e.data.yOffMouse){
 			var newHeight = containerHeight+e.pageY-e.data.yOffMouse;
-			if(newHeight > opts.minHeight &&( opts.maxHeight == 0 ||  newHeight < opts.maxHeight)) html.height(newHeight);
+			if(newHeight > opts.minHeight &&( opts.maxHeight == 0 ||  newHeight < opts.maxHeight)){
+				 htmlInner.height(newHeight);
+ 				 if(newHeight <  opts.minOuterHeight)  overlayBottom.height(opts.minOuterHeight - newHeight);
+
+			}
 		}
+		
 		
 		if(opts.onChange) opts.onChange.call();
 	};
@@ -634,6 +655,10 @@ function _debug(string){
 		
 		maxWidth: 900, 	//make it an array -> maxWidth, maxHeight  or  maxContainerSize.width & .height
 		minWidth: 40, 
+		
+		minOuterWidth: 250,
+		minOuterHeight: 250,
+		
 		maxHeight: 400,  // minSize[] or {}
 		minHeight: 80,
 		allowResizeWidth:true,	
