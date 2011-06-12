@@ -175,10 +175,10 @@
 		      startResize($(this).offset().left,$(this).offset().top);	    	
 			});
 			
-		/*	buttonResize.mouseOver(
-			   function() {if(!resizing){  fadeIn(buttonResizeHeight); fadeIn(buttonResizeWidth); }},
-			   function() { if(!resizing){ fadeOut(buttonResizeHeight); fadeOut(buttonResizeWidth); }}			   
-			);*/
+			buttonResize.hover(
+			   function() {if(!resizing && !dragging){  fadeTo(buttonResizeHeight,0.4); fadeTo(buttonResizeWidth,0.4); }},
+			   function() { if(!resizing && !dragging){ fadeTo(buttonResizeHeight,0,180,400); fadeTo(buttonResizeWidth,0,180,400); }}			   
+			);
 			
 		}
 
@@ -514,8 +514,8 @@
 		$(document).unbind("mouseup",stopResize);
     	$(document).unbind("mousemove",mouseMoveResize);
     
-      	containerWidth = html.width();
-      	containerHeight = html.height();
+      	containerWidth = htmlInner.width();
+      	containerHeight = htmlInner.height();
 		
     	if(!imageInBounds()) 
 		refreshOffset();
@@ -533,6 +533,7 @@
 				htmlInner.width(newWidth);
 				
 				if(newWidth <  opts.minOuterWidth) overlayRight.width(opts.minOuterWidth -newWidth);
+				else overlayRight.width(0);
 					overlayBottom.width(newWidth);
 			}
 		}
@@ -541,7 +542,8 @@
 			if(newHeight > opts.minHeight &&( opts.maxHeight == 0 ||  newHeight < opts.maxHeight)){
 				 htmlInner.height(newHeight);
  				 if(newHeight <  opts.minOuterHeight)  overlayBottom.height(opts.minOuterHeight - newHeight);
-
+ 				 else overlayBottom.height(0);
+		
 			}
 		}
 		
@@ -656,7 +658,7 @@ function _debug(string){
 		maxWidth: 900, 	//make it an array -> maxWidth, maxHeight  or  maxContainerSize.width & .height
 		minWidth: 40, 
 		
-		minOuterWidth: 250,
+		minOuterWidth: 350,
 		minOuterHeight: 250,
 		
 		maxHeight: 400,  // minSize[] or {}
