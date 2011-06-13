@@ -10,6 +10,11 @@
  *     http://www.opensource.org/licenses/mit-license.php
  *     http://www.gnu.org/licenses/gpl.html
  *
+ *  TODO:
+ * 	- add auto width/height defaults
+ *  - fix centered zooming
+ * 	- stuff width/height & x/y variables into js-objects (minContainerSize,imageOffset)
+ *  - aspect ratio
  */
 
 (function($){
@@ -18,6 +23,7 @@
                 that         	= this,
                 opts    		= $.extend({}, $.fn.superCrop.defaults, options),
 				html 			= $('<div class="supercrop_container"><div class="supercrop_loader"></div><div class="supercrop_overlay_bottom"></div><div class="supercrop_overlay_right"></div><div class="supercrop_inner"><div class="supercrop_hello"><div class="supercrop_resize"></div><div class="supercrop_resize_height"></div><div class="supercrop_resize_width"></div><img class="supercrop_image"/></div></div><div class="supercrop_buttonpane"><button class="supercrop_button supercrop_zoom_in">+</button><button class="supercrop_button supercrop_zoom_out">-</button></div><div class="supercrop_info">100%</div></div>'),
+		
 				buttonZoomIn	= $(".supercrop_zoom_in",html),
 				buttonZoomOut	= $(".supercrop_zoom_out",html),
 				buttonResizeWidth	= $(".supercrop_resize_width",html),
@@ -59,7 +65,11 @@
 		if(opts.onInit) opts.onInit.call();
    };		
    
-
+  
+   
+	function initContainer(){
+		
+	};
 
 	function _initImage(){
 		
@@ -73,10 +83,9 @@
 		containerHeight		= opts.height;
 
 
-
 		if(!opts.width) containerWidth = html.parent().width();  //maybe only on width:auto!?
-		htmlInner.width(containerWidth);
 		if(!opts.height) containerHeight = html.parent().height();
+		htmlInner.width(containerWidth);
 		htmlInner.height(containerHeight);
 
 		_updateOverlay(containerWidth,containerHeight);
@@ -511,6 +520,7 @@
       	
     };
     
+    
     function stopResize(){
     	resizing = false;		
 
@@ -667,7 +677,8 @@ function _debug(string){
 		stepSize: 10,
 	    allowZoom:true, 
 	    mouseWheel: true,
-		maxZoom: 200,	
+	    
+		maxZoom: 100,	// not implemented yet
 		minZoom: 10,
 		
 		maxWidth: 900, 	//make it an array -> maxWidth, maxHeight  or  maxContainerSize.width & .height or 
