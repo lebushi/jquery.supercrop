@@ -60,6 +60,7 @@
    };		
    
 
+
 	function _initImage(){
 		
 		zoom = (opts.zoom/10)-10;
@@ -73,13 +74,15 @@
 
 
 
-		if(!opts.width) containerWidth = html.parent().width();
+		if(!opts.width) containerWidth = html.parent().width();  //maybe only on width:auto!?
 		htmlInner.width(containerWidth);
 		if(!opts.height) containerHeight = html.parent().height();
 		htmlInner.height(containerHeight);
 
-		
+		_updateOverlay(containerWidth,containerHeight);
 
+		if(opts.minOuterWidth) html.css("min-width",opts.minOuterWidth+"px");
+		if(opts.minOuterHeight) html.css("min-height",opts.minOuterHeight+"px");
 	//	refreshOffset();
 		loader.show();
 		image.load(function(){
@@ -176,7 +179,7 @@
 			});
 			
 			buttonResize.hover(
-			   function() {if(!resizing && !dragging){  fadeTo(buttonResizeHeight,0.4); fadeTo(buttonResizeWidth,0.4); }},
+			   function() {if(!resizing && !dragging){  fadeTo(buttonResizeHeight,0.7); fadeTo(buttonResizeWidth,0.7); }},
 			   function() { if(!resizing && !dragging){ fadeTo(buttonResizeHeight,0,180,400); fadeTo(buttonResizeWidth,0,180,400); }}			   
 			);
 			
@@ -187,7 +190,7 @@
 	        var elements = $(".supercrop_buttonpane, .supercrop_info",html);
 	        fadeTo(elements,0,100);
 	        html.hover(
-				   function() { if(!resizing)  fadeTo(elements,0.8); },
+				   function() { if(!resizing)  fadeTo(elements,0.7); },
 				   function() { if(!resizing) fadeTo(elements,0,180,400); }				   
 			);
 		}
@@ -201,7 +204,7 @@
         
         function handleHover(element){
         	element.hover(
-        		function(){ if(!resizing && !dragging)  fadeTo($(this),0.4);},
+        		function(){ if(!resizing && !dragging)  fadeTo($(this),0.8);},
         		function(){ if(!resizing && !dragging) fadeTo($(this),0)}
         	);
         	element.bind("mousedown",function(){
@@ -532,17 +535,18 @@
 			if(	newWidth > opts.minWidth &&( opts.maxWidth == 0 ||  newWidth < opts.maxWidth)){
 				htmlInner.width(newWidth);
 				
-				if(newWidth <  opts.minOuterWidth) overlayRight.width(opts.minOuterWidth -newWidth);
-				else overlayRight.width(0);
-					overlayBottom.width(newWidth);
+				_updateOverlay(newWidth,false);
+				
+		
 			}
 		}
 		if(e.data.yOffMouse){
 			var newHeight = containerHeight+e.pageY-e.data.yOffMouse;
 			if(newHeight > opts.minHeight &&( opts.maxHeight == 0 ||  newHeight < opts.maxHeight)){
 				 htmlInner.height(newHeight);
- 				 if(newHeight <  opts.minOuterHeight)  overlayBottom.height(opts.minOuterHeight - newHeight);
- 				 else overlayBottom.height(0);
+ 	
+				_updateOverlay(false,newHeight);
+
 		
 			}
 		}
@@ -553,7 +557,18 @@
 
 
 
-
+ function _updateOverlay(currentWidth,currentHeight){
+ 	if(currentHeight){
+	 	 if(currentHeight <  opts.minOuterHeight)  overlayBottom.height(opts.minOuterHeight - currentHeight);
+		 else overlayBottom.height(0);
+	 }
+	 
+	if(currentWidth){ 
+	    if(currentWidth <  opts.minOuterWidth) overlayRight.width(opts.minOuterWidth -currentWidth);
+		else overlayRight.width(0);
+		overlayBottom.width(currentWidth);
+	}
+ };
 
 ////////////////////////////////////////////////////////////////////////////////////
 
@@ -655,14 +670,15 @@ function _debug(string){
 		maxZoom: 200,	
 		minZoom: 10,
 		
-		maxWidth: 900, 	//make it an array -> maxWidth, maxHeight  or  maxContainerSize.width & .height
+		maxWidth: 900, 	//make it an array -> maxWidth, maxHeight  or  maxContainerSize.width & .height or 
 		minWidth: 40, 
-		
-		minOuterWidth: 350,
-		minOuterHeight: 250,
-		
+				
 		maxHeight: 400,  // minSize[] or {}
 		minHeight: 80,
+		
+		minOuterWidth: 350,  //minContainerSize
+		minOuterHeight: 160,
+		
 		allowResizeWidth:true,	
 		allowResizeHeight:true,
 		
