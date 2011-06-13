@@ -14,6 +14,7 @@
  * 	- add auto width/height defaults
  *  - fix centered zooming
  * 	- stuff width/height & x/y variables into js-objects (minContainerSize,imageOffset)
+ *  - refactor zoomOut() function 
  *  - aspect ratio
  */
 
@@ -39,7 +40,8 @@
 				image			= $(".supercrop_image",html),
 				info			= $(".supercrop_info",html),
 				
-				zoomFactorPercentage = opts.stepSize,
+				zoomFactorPercentage = opts.stepSize,  //rename & relocate
+				
 				zooming			= false,
 				resizing		= false,
 				dragging        = false,
@@ -67,10 +69,17 @@
    
   
    
-	function initContainer(){
+   /*
+	function _initParameters(){
+		
+		zoom = (opts.zoom/10)-10;
+		xOff = opts.xOffset;
+		yOff = opts.yOffset;
+		zoomFactorPercentage = opts.stepSize; //rename & relocate
+
 		
 	};
-
+*/
 	function _initImage(){
 		
 		zoom = (opts.zoom/10)-10;
@@ -92,13 +101,15 @@
 
 		if(opts.minOuterWidth) html.css("min-width",opts.minOuterWidth+"px");
 		if(opts.minOuterHeight) html.css("min-height",opts.minOuterHeight+"px");
+		
 	//	refreshOffset();
+	
 		loader.show();
-		image.load(function(){
+		image.load(function(){ //may cause problems if image is already loaded ->
 			loader.fadeOut(180);
-			_calculateDimensions();
-		//	alert("meow");
-				image.css("width","auto").css("height","auto");				
+			
+			_calculateDimensions(); //recalculate sizes & ratios
+			image.css("width","auto").css("height","auto");	// reset image size			
 
 			zoomTo(zoom);
 			_update();
@@ -424,13 +435,13 @@
 
 	//enlarges image one "step"
 	function zoomIn(notAnimated){ 
-		zoomTo(zoom+1);
+			if((100+zoomFactorPercentage*(zoom+1)) <= opts.maxZoom )	zoomTo(zoom+1);
 	};
 
 	function zoomOut(notAnimated){
 	   
  		zoom--;
- 		if((100+zoomFactorPercentage*zoom) > opts.minZoom ){
+ 		if((100+zoomFactorPercentage*zoom) >= opts.minZoom ){
 
 			var	oldImageWidth = currentImageWidth,
 				oldImageHeight = currentImageHeight;
@@ -678,15 +689,15 @@ function _debug(string){
 	    allowZoom:true, 
 	    mouseWheel: true,
 	    
-		maxZoom: 100,	// not implemented yet
+		maxZoom: 140,	// percentage
 		minZoom: 10,
 		
 		maxWidth: 900, 	//make it an array -> maxWidth, maxHeight  or  maxContainerSize.width & .height or 
 		minWidth: 40, 
 				
 		maxHeight: 400,  // minSize[] or {}
-		minHeight: 80,
-		
+		minHeight: 80,		
+
 		minOuterWidth: 350,  //minContainerSize
 		minOuterHeight: 160,
 		
@@ -695,12 +706,22 @@ function _debug(string){
 		
 		xOffset: 0,		//array -> offset or javascript-object  offset.left
 		yOffset: 0,
-		offset: {left:0, top:0},
 		onChange: false,
 		onInit: false,
 	    fadeToolsOnHover: false,
 		
 		devmode: true
+		
+		//maxContainerSize : {width:auto, height aujto},
+		//minContainerSize : {width:80, height 80},
+
+		//maxCropSize : {width:900, height 400},
+		//minCropSize : {width:200, height 200},
+		
+		//maxImageSize : {width:false, height false},
+		//minImageSize : {width:false, height false},		
+		
+		//offset : {left:0,top:0}
 		
 	//  disableAnimations
 	// 	fitToContainerSize

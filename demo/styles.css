@@ -4,7 +4,7 @@ body                    { padding: 0px; margin: 0; font-family: Arial; }
 .supercrop_hello 	    { width:100%; height:100%; position: relative; }
 
 .supercrop_overlay_right,
-.supercrop_overlay_bottom   {background: #000; opacity:0.5; position:absolute; z-index:3; pointer-events: none;}
+.supercrop_overlay_bottom   {background: #000; opacity:0.55; -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=55)"; position:absolute; z-index:3; pointer-events: none;}
 
 .supercrop_overlay_right  { height:100%; right:0; width:0;}  
 .supercrop_overlay_bottom { bottom:0; height:0; width:100%;}  
