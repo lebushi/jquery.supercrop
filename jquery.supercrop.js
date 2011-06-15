@@ -134,6 +134,19 @@
 				currentImageWidth 	= imageWidth;
 				currentImageHeight 	= imageHeight;
 
+
+				if(imageWidth < html.width()){   //relocate
+					containerWidth = imageWidth;
+					htmlInner.width(containerWidth);				 
+					
+				}
+				if(imageHeight < html.height()){ 
+					containerHeight = imageHeight;
+					htmlInner.height(containerHeight);				 
+					
+				}				
+				_updateOverlay(containerWidth,containerHeight);
+
  				ratio 				= imageWidth/imageHeight;
 				
 				//what gets subtracted/added from the width of the picture
