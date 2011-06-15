@@ -16,14 +16,16 @@
  * 	- stuff width/height & x/y variables into js-objects (minContainerSize,imageOffset)
  *  - refactor zoomOut() function 
  *  - aspect ratio
+ * 	- resize animations
+ *  - make show/hideLoader function accessible
  */
 
-(function($){
+(function($){	
    var SuperCrop = function(el, options){
 		var     $el         	= $(el),
                 that         	= this,
                 opts    		= $.extend({}, $.fn.superCrop.defaults, options),
-				html 			= $('<div class="supercrop_container"><div class="supercrop_loader"></div><div class="supercrop_overlay_bottom"></div><div class="supercrop_overlay_right"></div><div class="supercrop_inner"><div class="supercrop_hello"><div class="supercrop_resize"></div><div class="supercrop_resize_height"></div><div class="supercrop_resize_width"></div><img class="supercrop_image"/></div></div><div class="supercrop_buttonpane"><button class="supercrop_button supercrop_zoom_in">+</button><button class="supercrop_button supercrop_zoom_out">-</button></div><div class="supercrop_info">100%</div></div>'),
+				html 			= $('<div class="supercrop_container"><div class="supercrop_loader"></div><div class="supercrop_overlay_bottom"></div><div class="supercrop_overlay_right"></div><div class="supercrop_inner"><div class="supercrop_hello"><div class="supercrop_resize"></div><div class="supercrop_resize_height"><div class="handle"></div></div><div class="supercrop_resize_width"><div class="handle"></div></div><img class="supercrop_image"/></div></div><div class="supercrop_buttonpane"><button class="supercrop_button supercrop_zoom_in"></button><button class="supercrop_button supercrop_zoom_out"></button></div><div class="supercrop_info">100%</div></div>'),
 		
 				buttonZoomIn	= $(".supercrop_zoom_in",html),
 				buttonZoomOut	= $(".supercrop_zoom_out",html),
@@ -39,16 +41,15 @@
 
 				image			= $(".supercrop_image",html),
 				info			= $(".supercrop_info",html),
-				
-				zoomFactorPercentage = opts.stepSize,  //rename & relocate
-				
+								
 				zooming			= false,
 				resizing		= false,
 				dragging        = false,
-				
+		     	initialized     = false,
+
 				zoom,xOff,yOff,containerWidth, containerHeight,				
  				imageWidth, imageHeight,
-				currentImageWidth, currentImageHeight,
+				currentImageWidth, currentImageHeight,zoomFactorPercentage,
  				ratio,				
 				//what gets subtracted/added from the width of the picture
 				zoomFactor,	zoomFactorY;
@@ -62,35 +63,32 @@
 
 
    function init(){
-   	    _initUi();
-   	    _initImage();		
+   	       	    
+    	containerWidth		= opts.width;
+		containerHeight		= opts.height;
+   	    
+		zoom = (opts.zoom/10)-10;
+		xOff = opts.xOffset;
+		yOff = opts.yOffset;
+   	    
+		zoomFactorPercentage = opts.stepSize; //rename
+
+   	    
+   	    
+  	    if(!initialized) _initUi();
+   	    
+   	    _initContainer(); 
+   	    
+   	   	if(opts.imageUrl) _initImage();		
 		if(opts.onInit) opts.onInit.call();
+		
+		initialized=true;
    };		
    
   
-   
-   /*
-	function _initParameters(){
-		
-		zoom = (opts.zoom/10)-10;
-		xOff = opts.xOffset;
-		yOff = opts.yOffset;
-		zoomFactorPercentage = opts.stepSize; //rename & relocate
 
-		
-	};
-*/
-	function _initImage(){
-		
-		zoom = (opts.zoom/10)-10;
-		xOff = opts.xOffset;
-		yOff = opts.yOffset;
-		
-		image.attr("src",opts.imageUrl);
-      					
-		containerWidth		= opts.width;
-		containerHeight		= opts.height;
-
+	function _initContainer(){
+	
 
 		if(!opts.width) containerWidth = html.parent().width();  //maybe only on width:auto!?
 		if(!opts.height) containerHeight = html.parent().height();
@@ -101,6 +99,12 @@
 
 		if(opts.minOuterWidth) html.css("min-width",opts.minOuterWidth+"px");
 		if(opts.minOuterHeight) html.css("min-height",opts.minOuterHeight+"px");
+		
+	};
+
+	function _initImage(){
+		
+		image.attr("src",opts.imageUrl);
 		
 	//	refreshOffset();
 	
@@ -198,11 +202,11 @@
 		      startResize($(this).offset().left,$(this).offset().top);	    	
 			});
 			
-			buttonResize.hover(
+		/*	buttonResize.hover(
 			   function() {if(!resizing && !dragging){  fadeTo(buttonResizeHeight,0.7); fadeTo(buttonResizeWidth,0.7); }},
 			   function() { if(!resizing && !dragging){ fadeTo(buttonResizeHeight,0,180,400); fadeTo(buttonResizeWidth,0,180,400); }}			   
 			);
-			
+			*/
 		}
 
 
@@ -210,7 +214,7 @@
 	        var elements = $(".supercrop_buttonpane, .supercrop_info",html);
 	        fadeTo(elements,0,100);
 	        html.hover(
-				   function() { if(!resizing)  fadeTo(elements,0.7); },
+				   function() { if(!resizing)  fadeTo(elements,1); },
 				   function() { if(!resizing) fadeTo(elements,0,180,400); }				   
 			);
 		}
@@ -218,22 +222,27 @@
 		
 		handleHover(buttonResizeHeight);  
   		handleHover(buttonResizeWidth);
-        
+  	 	handleHover(buttonResize);
+
         
 
         
         function handleHover(element){
+        	var mouseOut = false;
         	element.hover(
-        		function(){ if(!resizing && !dragging)  fadeTo($(this),0.8);},
-        		function(){ if(!resizing && !dragging) fadeTo($(this),0)}
+        		function(){ mouseOut=false; if(!resizing && !dragging)  fadeTo($(this),0.8);},
+        		function(){ mouseOut=true;  if(!resizing && !dragging) fadeTo($(this),0,100,300)}
         	);
+        
         	element.bind("mousedown",function(){
-        		$(document).bind("mouseup",fadeOut);
+        		$(document).bind("mouseup").bind("mouseup",fadeOut);
         	});
         	        	
         	function fadeOut(){
-        		  fadeTo(element,0);
-        		  $(document).unbind("mouseup",fadeOut);
+        		if(mouseOut){
+        		  fadeTo(element,0);        		
+    		      $(document).unbind("mouseup",fadeOut);
+    		    }
         	};
         };
         
@@ -551,7 +560,7 @@
 	    	e.preventDefault();
 	
 		if(e.data.xOffMouse){
-			var newWidth = containerWidth + e.pageX-e.data.xOffMouse;
+			var newWidth = containerWidth + e.pageX-e.data.xOffMouse-9;
 			
 			if(	newWidth > opts.minWidth &&( opts.maxWidth == 0 ||  newWidth < opts.maxWidth)){
 				htmlInner.width(newWidth);
@@ -562,7 +571,7 @@
 			}
 		}
 		if(e.data.yOffMouse){
-			var newHeight = containerHeight+e.pageY-e.data.yOffMouse;
+			var newHeight = containerHeight+e.pageY-e.data.yOffMouse-9;
 			if(newHeight > opts.minHeight &&( opts.maxHeight == 0 ||  newHeight < opts.maxHeight)){
 				 htmlInner.height(newHeight);
  	
@@ -638,17 +647,29 @@ function _debug(string){
 	*
 	**/
 	
+	this.showLoader = function(){
+		loader.show();
+	};
+	
+	this.hideLoader = function(){
+		loader.fadeOut(180);
+	};	
+	
     this.setImage = function(url){
     	this.setData({imageUrl:url});
     	
     };
-  
+    this.removeImage = function(){
+    	opts.imageUrl =false;
+		image.attr("src","");
+    	
+    };
     this.setData = function(data){
     	 $.extend(true, opts, data);  	
 		if(!data.zoom) opts.zoom = 100;
 		if(!data.width) opts.width=containerWidth;
 		if(!data.height) opts.height=containerHeight;
- 		_initImage();
+ 		init();
     };
    
     this.getData = function(){
@@ -683,7 +704,7 @@ function _debug(string){
   $.fn.superCrop.defaults = {
   	
 	    limitToContainerFormat: false,
-	    
+	    imageUrl: false,
 		zoom: 100, 
 		stepSize: 10,
 	    allowZoom:true, 
