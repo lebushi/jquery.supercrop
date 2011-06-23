@@ -12,12 +12,9 @@
  *
  *  TODO:
  * 	- add auto width/height defaults
- *  - fix centered zooming
- * 	- stuff width/height & x/y variables into js-objects (minContainerSize,imageOffset)
- *  - refactor zoomOut() function 
+ * 	- put  width/height & x/y variables into js-objects (minContainerSize,imageOffset)
  *  - aspect ratio
  * 	- resize animations
- *  - make show/hideLoader function accessible
  */
 
 (function($){	
@@ -50,7 +47,9 @@
 				zoom,xOff,yOff,containerWidth, containerHeight,				
  				imageWidth, imageHeight,
 				currentImageWidth, currentImageHeight,zoomFactorPercentage,
- 				ratio,				
+ 				ratio,
+ 				
+ 				//offset, currentImageSize, rootImageSize, canvasSize, cropSize,				
 				//what gets subtracted/added from the width of the picture
 				zoomFactor,	zoomFactorY;
 			
@@ -68,12 +67,12 @@
 		containerHeight		= opts.height;
    	    
 		zoom = (opts.zoom/10)-10;
+
 		xOff = opts.xOffset;
 		yOff = opts.yOffset;
    	    
 		zoomFactorPercentage = opts.stepSize; //rename
 
-   	    
    	    
   	    if(!initialized) _initUi();
    	    
@@ -114,8 +113,7 @@
 			
 			_calculateDimensions(); //recalculate sizes & ratios
 			image.css("width","auto").css("height","auto");	// reset image size			
-
-			zoomTo(zoom);
+			if(zoom != 0) zoomTo(zoom);
 			_update();
 			
 		});
@@ -239,7 +237,7 @@
 
         
 
-        
+        //makes buttons hoverable
         function handleHover(element){
         	var mouseOut = false;
         	element.hover(
@@ -385,56 +383,34 @@
 
 
 
-/*
-	function calculateCenterRatio(){
-		
-		var imageCenter 	= {x:currentImageWidth/2,y:currentImageHeight/2},
-			containerCenter = {x:containerWidth/2,y:containerHeight/2},
-			// attention here: this value may only be working when no actual margin is allowed
-			maxDistance 	= {		
-								x:imageCenter.x - containerCenter.x,
-							   	y:imageCenter.y - containerCenter.y
-							},
-		 	currentDistance	= {
-								x:imageCenter.x - (containerCenter.x + Math.abs(xOff)),
-				   				y:imageCenter.y - (containerCenter.y + Math.abs(yOff))
-							},
-			ratio 			= {
-								x:Math.abs(currentDistance.x/maxDistance.x-3),
-								y:Math.abs(currentDistance.y/maxDistance.y-3) //hmm
-							};
-			if(imageCenter.x < Math.abs(xOff)) currentDistance.x = Math.abs(xOff) - imageCenter.x;
-			if(imageCenter.y < Math.abs(yOff)) currentDistance.y = Math.abs(yOff) - imageCenter.y;
-			
-			///RECALCULATE XOFF
-		
-			_debug("calculateCenterRatio() maxDistance: " +Math.round( maxDistance.x )+ " " +Math.round(maxDistance.y) + 
-			" ---- currentDistance: " + Math.round(currentDistance.x) + " " + Math.round(currentDistance.y) + " ---- ratio: " + ratio.x + " " + ratio.y +
-			" xOff: " + xOff + " yOff: " +yOff + 
-			" imageCenter.x: " + imageCenter.x + " imageCenter.y : " +imageCenter.y );
-		
 
-		return ratio;
-	};
-*/
 		
    	//this would be much nicer, wouldn't it?
    	//calculates the new that allows centered zooming
-	function calculateCenteredOffset(newWidth,newHeight){
-		var returnOffset = {x:0,y:0};
+	function calculateCenteredOffset(newWidth,newHeight,oldWidth,oldHeight){
+		var centerRatio = { 
+							x:  (Math.abs(xOff) + containerWidth/2) / oldWidth,
+							y:  (Math.abs(yOff) + containerHeight/2) /oldHeight
+						};
 		
-		//returnOffset.x = -(newWidth/2 - containerWidth/2);
-		//returnOffset.y = -(newHeight/2 - containerHeight/2);
-		returnOffset.x = -(((Math.abs(xOff)*2 + containerWidth)/2)-containerWidth/2);
-		returnOffset.y = -(((Math.abs(yOff)*2 + containerHeight)/2)-containerHeight/2);
+		var returnOffset = {
+							x: -(centerRatio.x*newWidth - containerWidth/2),
+							y: -(centerRatio.y*newHeight - containerHeight/2)
+						};
 		
-		if(newWidth < containerWidth)  returnOffset.x  = 0;
-		if(newHeight < containerHeight)  returnOffset.y  = 0;
+		_debug("calculateCenteredOffset() - centerRatio x: " + centerRatio.x + " y: " + centerRatio.y + "   xOff: " + xOff + "  yOff: " + yOff ); 
+		
+		if(newWidth + returnOffset.x<= containerWidth || ( newWidth < oldWidth && xOff == 0 ))  returnOffset.x  = 0;
+		if(newHeight + returnOffset.y <= containerHeight || (newHeight < oldHeight && yOff == 0 ))  returnOffset.y  = 0;
+		
+		
 		return returnOffset;
 	};
 
 
-
+	
+	
+	
 	function zoomTo(value,soft){
 		zoom = value;
 		
@@ -444,8 +420,9 @@
 		currentImageWidth= imageWidth+zoomFactor*zoom;
     	currentImageHeight= imageHeight+zoomFactorY*zoom;
     	
+    //	alert(oldImageWidth  +  " " + currentImageWidth);
     	
-		var ratio = calculateCenteredOffset(currentImageWidth,currentImageHeight);
+		var ratio = calculateCenteredOffset(currentImageWidth,currentImageHeight,oldImageWidth,oldImageHeight);
 		
 		xOff = ratio.x;
 		yOff = ratio.y;
@@ -456,50 +433,22 @@
 
 
 	//enlarges image one "step"
-	function zoomIn(notAnimated){ 
+	function zoomIn(){ 
 			if((100+zoomFactorPercentage*(zoom+1)) <= opts.maxZoom )	zoomTo(zoom+1);
 	};
 
-	function zoomOut(notAnimated){
-	   
- 		zoom--;
- 		if((100+zoomFactorPercentage*zoom) >= opts.minZoom ){
 
-			var	oldImageWidth = currentImageWidth,
-				oldImageHeight = currentImageHeight;
-				
-	     	currentImageWidth= imageWidth+zoomFactor*zoom;
-	    	currentImageHeight= imageHeight+zoomFactorY*zoom;
-	        
+	function zoomOut(){
+	 		if((100+zoomFactorPercentage*zoom) > opts.minZoom && _checkMinimum())  zoomTo(zoom-1);
+	 		
+	 		
+	 		function _checkMinimum(){
+	 			if(opts.limitToContainerFormat &&  ( imageWidth+zoomFactor*(zoom-1) < containerWidth || imageHeight+zoomFactorY*(zoom-1) < containerHeight)) return false;
+	 			else return true;
+	 		};
+
+	};
 	
-	    	if(opts.limitToContainerFormat && (currentImageWidth < containerWidth || currentImageHeight < containerHeight )){
-	                
-	 			zoom++;
-	     		currentImageWidth= imageWidth+zoomFactor*zoom;
-	    		currentImageHeight= imageHeight+zoomFactorY*zoom;
-	              
-	    
-	    	}else{
-	    		
-				var ratio = calculateCenteredOffset(currentImageWidth,currentImageHeight);
-				xOff=ratio.x;
-				yOff=ratio.y;
-				
-			/*	var ratio = calculateCenterRatio();
-				xOff+= (oldImageWidth-currentImageWidth)/ratio.x;  
-				yOff+= (oldImageHeight-currentImageHeight)/ratio.y;
-				*/
-				_debug("zoomOut-- xOffDifference: " +  (oldImageWidth-currentImageWidth) + " ratio.x: " + ratio.x + " xOff+= "  + (oldImageWidth-currentImageWidth)/ratio.x);
-				_debug("zoomOut-- yOffDifference: " +  (oldImageHeight-currentImageHeight) + " ratio.y: " + ratio.y + " yOff+= "  + (oldImageHeight-currentImageHeight)/ratio.y);
-				
-		 	//	var callback = refreshOffset;
-	        	_update(false,refreshOffset);
-	
-	    }
-    }else{
-    	zoom++;
-    }
-};
 
 
 	//called on mousemove-event while dragging
@@ -550,13 +499,15 @@
     	resizing = true;		
     	$(document).unbind("mousemove",mouseMoveResize).bind("mousemove",{xOffMouse:xOffMouse,yOffMouse:yOffMouse},mouseMoveResize);
 		$(document).unbind("mouseup",stopResize).mouseup(stopResize);
-      	
+      	        html.addClass("supercrop_active");
+
     };
     
     
     function stopResize(){
     	resizing = false;		
 
+        html.removeClass("supercrop_active");
 		$(document).unbind("mouseup",stopResize);
     	$(document).unbind("mousemove",mouseMoveResize);
     
@@ -570,7 +521,7 @@
 	function mouseMoveResize(e){
 	
 		if(!e) 	e = window.event;
-	    	e.preventDefault();
+    	e.preventDefault();
 	
 		if(e.data.xOffMouse){
 			var newWidth = containerWidth + e.pageX-e.data.xOffMouse-9;
@@ -618,7 +569,6 @@
 function _update(notAnimated,onFinishAnimation){
 		image.stop(true,false); // stopping all image animaations
 		//_updateOffset();
-			
 		if(notAnimated){ 
 			image.width(Math.round(currentImageWidth));  
 			image.offset({left:xOff,top:yOff});
